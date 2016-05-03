@@ -1,22 +1,22 @@
-import { createEvent } from '../../src/index'
+import { INCREMENTED, DECREMENTED } from './constants'
 
-export const incrementedEvent = createEvent('incremented')
-export const decrementedEvent = createEvent('decremented')
+// Initial state
+const initialState = { count: 0 }
 
-export default (state = { count: 0 }, event) => {
-  const { type, payload = {} } = event
-  const { count } = payload
+// This reducer returns what would be merged
+// with the current state and be returned as new state
+export default (state = initialState, event) => {
 
-  switch(type) {
+  switch(event.type) {
 
-    case 'incremented':
+    case INCREMENTED:
       return {
-        count: state.count + count
+        count: state.count + event.payload.count
       }
 
-    case 'decremented':
+    case DECREMENTED:
       return {
-        count: state.count - count
+        count: state.count - event.payload.count
       }
 
     default:

@@ -26,21 +26,16 @@ var history = [
   }
 ]
 
-export default options => {
+export default {
 
-  function load(id, fn) {
+  load(id, fn) {
     console.log('CALLING CUSTOM STORE LOAD', id)
     setTimeout(() => fn(null, history), 1000)
-  }
+  },
 
-  function save(action, fn) {
+  save(action, fn) {
     console.log('CALLING CUSTOM STORE SAVE')
     history = [...history, action]
     setTimeout(() => fn(null, action), 1000)
   }
-
-  load = load.bind(null)
-  save = save.bind(null)
-
-  return { load, save }
 }

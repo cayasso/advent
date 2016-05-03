@@ -1,22 +1,22 @@
-import { createCommand } from '../../src/index'
-import * as events from './events'
+import {
+  INCREMENT, DECREMENT,
+  incremented, decremented
+} from './constants'
 
-export const incrementCommand = createCommand('increment')
-export const decrementCommand = createCommand('decrement')
-
+// This reducer returns an array of events to pass on
+// to the event reducer
 export default (state, command) => {
-  const { id, type, payload } = command
 
-  switch(type) {
+  switch(command.type) {
 
-    case 'increment':
-      return [{ ...command, type: 'incremented' }]
+    case INCREMENT:
+      return [incremented({ count: command.payload.count })]
 
-    case 'decrement':
+    case DECREMENT:
       return [
-        events.incrementedEvent({ id, count: 1500 }),
-        events.decrementedEvent({ id, count: 1000 }),
-        events.decrementedEvent(payload)
+        incremented({ count: 1500 }),
+        decremented({ count: 1000 }),
+        decremented({ count: command.payload.count })
       ]
 
     default:

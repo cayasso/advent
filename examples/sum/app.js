@@ -1,30 +1,26 @@
 import 'babel-polyfill'
 
-import { incrementCommand, decrementCommand } from './commands'
+import { increment, decrement } from './constants'
 import { createStore } from '../../src/index'
-import engine from './customEngine'
-import commands from './commands'
-import events from './events'
+import commandReducer from './commands'
+import eventReducer from './events'
 
 const noop = () => {}
-const store = createStore(commands, events);
 
+// Creating store
+const store = createStore(commandReducer, eventReducer);
+
+// Subscribing to store events
 store.subscribe((data) => {
   console.log('event:', data);
 });
 
-function increment(data, fn = noop) {
-  return store(incrementCommand(data))
-}
+// Executing commands
+store(increment({ id: 123, count: 110 }))
+store(increment({ id: 123, count: 200 }))
+store(increment({ id: 123, count: 100 }))
 
-function decrement(data, fn = noop) {
-  return store(decrementCommand(data))
-}
-
-increment({ id: 123, count: 110 })
-increment({ id: 123, count: 200 })
-increment({ id: 123, count: 100 })
-
+// Delayed command
 setTimeout(() => {
-  decrement({ id: 123, count: 10 })
+  store(decrement({ id: 123, count: 10 }))
 }, 500)
