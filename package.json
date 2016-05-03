@@ -1,6 +1,6 @@
 {
   "name": "advent",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Event sourcing made simple.",
   "keywords": [
     "store",
