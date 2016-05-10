@@ -121,13 +121,14 @@ function store(commandReducer, eventReducer, options = {}) {
    */
 
   function apply(id, events, silent) {
+    let interval = 100
     return currentState[id] = events.reduce((oldState, event) => {
       let state = eventReducer(oldState, event)
       let newState = update(oldState, state)
       if (!silent) {
-        setImmediate(() => {
+        setTimeout(() => {
           emit(event.type, newState, oldState, event)
-        })
+        }, interval = interval + 100)
       }
       return newState
     }, get(id))
