@@ -125,7 +125,7 @@ function store(commandReducer, eventReducer, options = {}) {
       let state = eventReducer(oldState, event)
       let newState = update(oldState, state)
       if (!silent) {
-        setImmediate(emit, event.type, newState, oldState, event)
+        setImmediate(emit, event.type, event, newState, oldState)
       }
       return newState
     }, get(id))

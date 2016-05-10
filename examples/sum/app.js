@@ -11,7 +11,7 @@ const noop = () => {}
 const store = createStore(commandReducer, eventReducer);
 
 // Subscribing to store events
-store.subscribe((data) => {
+store.subscribe((e, data) => {
   console.log('event:', data);
 });
 
