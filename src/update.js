@@ -51,11 +51,7 @@ function resolve(original, updates, isNull) {
 
 function object(original, updates, isNull) {
   return keys(updates).reduce((obj, key, i) => {
-    if (!isNull && updates[key] === null) {
-      delete obj[key]
-    } else {
-      obj[key] = resolve(original[key], updates[key])
-    }
+    obj[key] = resolve(original[key], updates[key])
     return obj
   }, { ...original })
 }

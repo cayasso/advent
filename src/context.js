@@ -47,7 +47,7 @@ export default ({ engine, apply }) => {
       if (events.length) {
         history = [...history, ...events]
         let event = last(history)
-        counter = 'version' in event ? action.version : counter
+        counter = 'version' in event ? event.version : counter
       }
 
       status = REPLAYING
@@ -56,9 +56,9 @@ export default ({ engine, apply }) => {
     }
 
     /**
-     * Persist an action.
+     * Persist an event.
      *
-     * @param {Object} action
+     * @param {Object} event
      * @param {Function} [fn]
      * @return {Promise}
      * @api public
@@ -69,7 +69,7 @@ export default ({ engine, apply }) => {
     }
 
     /**
-     * Add an action function to queue.
+     * Add an event function to queue.
      *
      * @param {Function} fn
      * @return {Array}
@@ -92,9 +92,9 @@ export default ({ engine, apply }) => {
     }
 
     /**
-     * Normalize action.
+     * Normalize event.
      *
-     * @param {Object} action
+     * @param {Object} event
      * @return {Object}
      * @api private
      */
