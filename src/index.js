@@ -6,9 +6,9 @@
 
 import 'babel-polyfill'
 import { EMPTY, LOADING, REPLAYING } from './constants'
+import createEngine from 'advent-memory'
 import createContext from './context'
 import isEqual from 'lodash.isequal'
-import createEngine from './engine'
 import Promise from 'any-promise'
 import update from './update'
 import evts from 'events'
