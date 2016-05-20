@@ -51,7 +51,7 @@ export default ({ engine, apply }) => {
       }
 
       status = REPLAYING
-      apply(id, events)
+      apply(id, events, true)
       status = LOADED
     }
 
