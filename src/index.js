@@ -5,32 +5,33 @@
  */
 
 import 'babel-polyfill'
-import { EMPTY, LOADING, REPLAYING } from './constants'
+import { EMPTY, LOADING } from './constants'
+import isObject from 'lodash.isplainobject'
 import createEngine from 'advent-memory'
 import createContext from './context'
+import { EventEmitter } from 'events'
 import isEqual from 'lodash.isequal'
-import Promise from 'any-promise'
 import update from './update'
-import evts from 'events'
+import freeze from './freeze'
 
 /**
-* Create the store.
-*
-* @param {Function} reducer
-* @param {Object} [options]
-* @return {Function} store
-*/
+ * Create the store.
+ *
+ * @param {Function} commandReducer
+ * @param {Function} eventReducer
+ * @param {Object} [options]
+ * @return {Function} store
+ */
 
 function store(commandReducer, eventReducer, options = {}) {
+  const pk = options.pk || 'id'
   const engine = options.engine || createEngine()
-  const emitter = options.emitter || new evts.EventEmitter()
+  const emitter = options.emitter || new EventEmitter()
   const contexts = createContext({ engine, apply })
 
   if ('function' !== typeof commandReducer) {
     throw new Error('Command reducer must be a function.')
-  }
-
-  if ('function' !== typeof eventReducer) {
+  } else if ('function' !== typeof eventReducer) {
     throw new Error('Event reducer must be a function.')
   }
 
@@ -39,58 +40,46 @@ function store(commandReducer, eventReducer, options = {}) {
   /**
    * Send a command to the store to be executed.
    *
-   * @param {object} command
-   * @param {Function} fn
+   * @param {Object} command
    */
 
-  async function dispatch(command, fn) {
-    try {
-      const { id } = command
-      const context = contexts(id)
+  async function dispatch(command) {
+    const context = contexts(command.payload[pk])
 
-      if (EMPTY === context.status) {
-        await context.load()
-        return context.drain(resolve(command, fn))
-      }
-
-      if (LOADING === context.status) {
-        let task = () => resolve(command, fn)
-        return context.enqueue(task)
-      }
-
-      resolve(command, fn)
-    } catch(e) {
-      fn(e)
+    if (EMPTY === context.status) {
+      await context.load()
+      await resolve(command)
+      await context.drain()
+      return true
     }
+
+    if (LOADING === context.status) {
+      let task = () => resolve(command)
+      return context.enqueue(task)
+    }
+
+    return await resolve(command)
   }
 
   /**
    * Save and resolve an action to update state.
    *
    * @param {Object} command
-   * @param {Function} fn
+   * @return {Promise}
    */
 
-  async function resolve(command, fn) {
-
-    try {
-      const { id, type } = command
-      let context = contexts(id)
-      let preevents = execute(command)
-      let events = await context.save(preevents)
-      let state = apply(id, events)
-      fn(null, state)
-    } catch(e) {
-      //console.log(e.stack)
-      fn(e)
-    }
+  async function resolve(command) {
+    const id = command.payload[pk]
+    const context = contexts(id)
+    const events = execute(command)
+    const committedEvents = await context.commit(events)
+    return apply(id, committedEvents)
   }
 
   /**
    * Emit events to the outside world.
    *
    * @param {String} type
-   * @return {Object} data
    */
 
   function emit(type, ...args) {
@@ -107,8 +96,11 @@ function store(commandReducer, eventReducer, options = {}) {
    */
 
   function execute(command) {
-    let state = get(command.id)
-    return commandReducer(state, command)
+    const id = command.payload[pk]
+    const state = get(id)
+    const context = contexts(id)
+    const events = commandReducer(state, command, get)
+    return events.map(context.toEvent)
   }
 
   /**
@@ -120,13 +112,11 @@ function store(commandReducer, eventReducer, options = {}) {
    * @return {Mixed}
    */
 
-  function apply(id, events, silent) {
+  function apply(id, events, silent = false) {
     return currentState[id] = events.reduce((oldState, event) => {
       let state = eventReducer(oldState, event)
       let newState = update(oldState, state)
-      if (!silent) {
-        setImmediate(emit, event.type, event, newState, oldState)
-      }
+      if (!silent) setImmediate(emit, event.type, event, newState, oldState)
       return newState
     }, get(id))
   }
@@ -139,9 +129,7 @@ function store(commandReducer, eventReducer, options = {}) {
    */
 
   function get(id) {
-    return id
-    ? currentState[id]
-    : currentState
+    return freeze(id ? currentState[id] : currentState)
   }
 
   /**
@@ -152,7 +140,7 @@ function store(commandReducer, eventReducer, options = {}) {
    * @return {Function} off
    */
 
-  function on(type, fn) {
+  function subscribe(type, fn) {
     if ('function' === typeof type) {
       fn = type
       type = '*'
@@ -168,43 +156,23 @@ function store(commandReducer, eventReducer, options = {}) {
    * @return {Promise}
    */
 
-  function instance(command, fn) {
-    const promise = new Promise(function(accept, reject) {
-      try {
-        if (!command) {
-          throw new Error('Action parameter is required.')
-        }
-
-        if (!command.id) {
-          throw new Error('Id property of command is required and must be a string.')
-        }
-
-        if ('string' !== typeof command.type) {
-          throw new Error('Type property of command is required and must be a string.')
-        }
-
-        dispatch(command, (err, state) => {
-          !err ? accept(state) : reject(err)
-        })
-      } catch(e) {
-        //console.log(e.stack)
-        reject(e)
-      }
-    })
-
-    if ('function' === typeof fn) {
-      promise
-        .then(state => fn(null, state))
-        .catch(fn)
+  async function instance(command) {
+    if (!isObject(command)) {
+      throw new Error('Command must be a plain object.')
     }
 
-    return promise
+    let { type, payload } = command
+
+    if (!type || 'string' !== typeof type) {
+      throw new Error('Command must have a valid type.')
+    } else if ('undefined' === typeof payload) {
+      throw new Error('Command must have a payload.')
+    }
+
+    return await dispatch(freeze({ type, payload }))
   }
 
-  instance.getState = get
-  instance.subscribe = on
-
-  return instance
+  return Object.assign(instance, { get, subscribe })
 }
 
 /**
@@ -215,12 +183,11 @@ function store(commandReducer, eventReducer, options = {}) {
  * @return {Function}
  */
 
-function packer(type, fn) {
+function packer(type, fn, options = {}) {
   fn = ('function' === typeof fn) ? fn : identity
   return (...args) => {
     let payload = fn(...args)
     let packet = { type, payload }
-    if (payload.id) packet.id = payload.id
     if (args.length === 1 && args[0] instanceof Error) {
       packet.error = true;
     }

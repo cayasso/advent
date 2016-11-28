@@ -1,10 +1,11 @@
-'use strict';
+'use strict'
 
 /**
  * Module dependencies.
  */
 
-import isPlainObject from 'lodash.isplainobject';
+import isPlainObject from 'lodash.isplainobject'
+import freeze from './freeze'
 
 /**
  * Module constants.
@@ -23,7 +24,7 @@ const keys = Object.keys
 
 export default (original, update, ...args) => {
   update = args.reduce((o, n) => resolve(o, n, true), update)
-  return resolve(original, update);
+  return freeze(resolve(original, update))
 }
 
 /**
@@ -38,7 +39,7 @@ function resolve(original, updates, isNull) {
     ? object(original, updates, isNull)
     : isArray(original) && isArray(updates)
     ? array(original, updates)
-    : updates === undefined ? original : updates;
+    : updates === undefined ? original : updates
 }
 
 /**
@@ -46,7 +47,7 @@ function resolve(original, updates, isNull) {
  *
  * @param {Object} original
  * @param {Array} updates
- * @return {Array}
+ * @return {Object}
  */
 
 function object(original, updates, isNull) {
@@ -65,5 +66,5 @@ function object(original, updates, isNull) {
  */
 
 function array(original, updates) {
-  return [...updates];
+  return [...updates]
 }

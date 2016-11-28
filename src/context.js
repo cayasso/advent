@@ -5,7 +5,10 @@
  */
 
 import { EMPTY, LOADING, LOADED, REPLAYING } from './constants'
+import isObject from 'lodash.isplainobject'
 import last from 'lodash.last'
+import freeze from './freeze'
+import uuid from 'uuid'
 
 /**
  * Context creator initializer.
@@ -16,7 +19,7 @@ import last from 'lodash.last'
  */
 
 export default ({ engine, apply }) => {
-  var contexts = {}
+  let contexts = {}
 
   /**
    * Create a new context.
@@ -29,7 +32,7 @@ export default ({ engine, apply }) => {
   function context(id) {
     let status = EMPTY
     let history = []
-    let counter = 0
+    let version = 0
     let queue = []
 
     /**
@@ -42,14 +45,12 @@ export default ({ engine, apply }) => {
 
     async function load() {
       status = LOADING
-      let events = await engine.load(id)
-
+      let events = freeze(await engine.load(id))
       if (events.length) {
         history = [...history, ...events]
-        let event = last(history)
-        counter = 'version' in event ? event.version : counter
+        const event = last(history)
+        version = 'version' in event ? event.version : version
       }
-
       status = REPLAYING
       apply(id, events, true)
       status = LOADED
@@ -59,13 +60,12 @@ export default ({ engine, apply }) => {
      * Persist an event.
      *
      * @param {Object} event
-     * @param {Function} [fn]
      * @return {Promise}
      * @api public
      */
 
-    function save(events, fn) {
-      return engine.save(normalize(events))
+    function commit(events) {
+      return engine.save(events)
     }
 
     /**
@@ -83,35 +83,51 @@ export default ({ engine, apply }) => {
     /**
      * Drain queue.
      *
-     * @return {Void}
-     * @api private
+     * @return {Promise}
+     * @api public
      */
 
-    function drain() {
-      while (queue.length) queue.shift()()
+    async function drain() {
+      while (queue.length) await queue.shift()()
     }
 
     /**
-     * Normalize event.
+     * Create an event.
      *
      * @param {Object} event
      * @return {Object}
      * @api private
      */
 
-    function normalize(events) {
-      return events.map(event => {
-        event.id = id
-        event.version = ++counter
-        event.ts = Date.now()
-        return event
+    function toEvent(event) {
+      if (!isObject(event)) {
+        throw new Error('Event must be a plain object.')
+      } else if (!event.type || 'string' !== typeof event.type) {
+        throw new Error('Event must have a valid type.')
+      } else if ('undefined' === typeof event.payload) {
+        throw new Error('Event must have a payload.')
+      }
+
+      let { type, meta = {}, payload } = event
+
+      payload.id = payload.id || id
+
+      return freeze({
+        type,
+        meta,
+        payload,
+        id: uuid.v4(),
+        entityId: id,
+        ts: Date.now(),
+        version: ++version
       })
     }
 
     return {
       load,
-      save,
+      commit,
       drain,
+      toEvent,
       enqueue,
       get status() {
         return status
