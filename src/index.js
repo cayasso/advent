@@ -24,7 +24,7 @@ import freeze from './freeze'
  */
 
 function store(commandReducer, eventReducer, options = {}) {
-  const pk = options.pk || 'id'
+  const pk = options.idKey || 'id'
   const engine = options.engine || createEngine()
   const emitter = options.emitter || new EventEmitter()
   const contexts = createContext({ engine, apply })
@@ -36,30 +36,6 @@ function store(commandReducer, eventReducer, options = {}) {
   }
 
   let currentState = {}
-
-  /**
-   * Send a command to the store to be executed.
-   *
-   * @param {Object} command
-   */
-
-  async function dispatch(command) {
-    const context = contexts(command.payload[pk])
-
-    if (EMPTY === context.status) {
-      await context.load()
-      await resolve(command)
-      await context.drain()
-      return true
-    }
-
-    if (LOADING === context.status) {
-      let task = () => resolve(command)
-      return context.enqueue(task)
-    }
-
-    return await resolve(command)
-  }
 
   /**
    * Save and resolve an action to update state.
@@ -133,7 +109,7 @@ function store(commandReducer, eventReducer, options = {}) {
   }
 
   /**
-   * Listen to changes to the store.
+   * Subscribe to changes from the store.
    *
    * @param {string} type
    * @param {Function} fn
@@ -156,7 +132,12 @@ function store(commandReducer, eventReducer, options = {}) {
    * @return {Promise}
    */
 
-  async function instance(command) {
+  async function dispatch(command) {
+    if (Array.isArray(command)) {
+      for (let cmd of command) await dispatch(cmd)
+      return
+    }
+
     if (!isObject(command)) {
       throw new Error('Command must be a plain object.')
     }
@@ -165,14 +146,32 @@ function store(commandReducer, eventReducer, options = {}) {
 
     if (!type || 'string' !== typeof type) {
       throw new Error('Command must have a valid type.')
-    } else if ('undefined' === typeof payload) {
-      throw new Error('Command must have a payload.')
+    } else if ('undefined' === typeof payload || !isObject(payload)) {
+      throw new Error('Command must have a payload object.')
+    } else if ('undefined' === typeof payload.id) {
+      throw new Error('An entity id is required in command payload.')
     }
 
-    return await dispatch(freeze({ type, payload }))
+    command = freeze({ type, payload })
+    const context = contexts(payload[pk])
+
+    if (EMPTY === context.status) {
+      await context.load()
+      await resolve(command)
+      await context.drain()
+      return true
+    }
+
+    if (LOADING === context.status) {
+      let task = () => resolve(command)
+      context.enqueue(task)
+      return true
+    }
+
+    return await resolve(command)
   }
 
-  return Object.assign(instance, { get, subscribe })
+  return Object.assign(dispatch, { getState: get, subscribe, dispatch })
 }
 
 /**
@@ -203,6 +202,8 @@ function identity(type) {
   return type
 }
 
-export const createStore = store
-export const createEvent = packer
-export const createCommand = packer
+export default Object.assign(store, {
+  createStore: store,
+  createEvent: packer,
+  createCommand: packer
+})
