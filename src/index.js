@@ -202,8 +202,6 @@ function identity(type) {
   return type
 }
 
-export default Object.assign(store, {
-  createStore: store,
-  createEvent: packer,
-  createCommand: packer
-})
+export const createStore = store
+export const createEvent = packer
+export const createCommand = packer

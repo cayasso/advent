@@ -18,7 +18,7 @@
     "prepublish": "make"
   },
   "dependencies": {
-    "advent-memory": "^0.1.2",
+    "advent-memory": "^0.1.3",
     "lodash.isequal": "^4.1.4",
     "lodash.isplainobject": "^4.0.4",
     "lodash.last": "^3.0.0",

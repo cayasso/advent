@@ -1,4 +1,4 @@
-import advent from '../src/index'
+import * as advent from '../src/index'
 
 let db = null
 let engine = null

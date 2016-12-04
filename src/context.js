@@ -7,7 +7,6 @@
 import { EMPTY, LOADING, LOADED, REPLAYING } from './constants'
 import isObject from 'lodash.isplainobject'
 import last from 'lodash.last'
-import freeze from './freeze'
 import uuid from 'uuid'
 
 /**
@@ -38,14 +37,13 @@ export default ({ engine, apply }) => {
     /**
      * Load history of events of this context id.
      *
-     * @param {Function} fn
      * @return {Promise}
      * @api public
      */
 
     async function load() {
       status = LOADING
-      let events = freeze(await engine.load(id))
+      let events = await engine.load(id)
       if (events.length) {
         history = [...history, ...events]
         const event = last(history)
@@ -59,7 +57,7 @@ export default ({ engine, apply }) => {
     /**
      * Persist an event.
      *
-     * @param {Object} event
+     * @param {Array} events
      * @return {Promise}
      * @api public
      */
@@ -77,6 +75,7 @@ export default ({ engine, apply }) => {
      */
 
     function enqueue(fn) {
+      console.log('ENQUEEEE *********************************')
       return queue.push(fn)
     }
 
@@ -108,19 +107,20 @@ export default ({ engine, apply }) => {
         throw new Error('Event must have a payload.')
       }
 
-      let { type, meta = {}, payload } = event
+      let { type, entity = '', meta = {}, payload } = event
 
       payload.id = payload.id || id
 
-      return freeze({
+      return {
         type,
         meta,
+        entity,
         payload,
         id: uuid.v4(),
         entityId: id,
         ts: Date.now(),
         version: ++version
-      })
+      }
     }
 
     return {
