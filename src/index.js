@@ -1,16 +1,11 @@
 'use strict'
 
-/**
- * Module dependencies.
- */
-
 import 'babel-polyfill'
 import { EMPTY, LOADING } from './constants'
 import isObject from 'lodash.isplainobject'
 import createEngine from 'advent-memory'
 import createContext from './context'
 import { EventEmitter } from 'events'
-import isEqual from 'lodash.isequal'
 import update from './update'
 import freeze from './freeze'
 
@@ -35,7 +30,7 @@ function store(commandReducer, eventReducer, options = {}) {
     throw new Error('Event reducer must be a function.')
   }
 
-  let currentState = {}
+  let state = {}
 
   /**
    * Save and resolve an action to update state.
@@ -46,10 +41,8 @@ function store(commandReducer, eventReducer, options = {}) {
 
   async function resolve(command) {
     const id = command.payload[pk]
-    const context = contexts(id)
-    const events = execute(command)
-    const committedEvents = await context.commit(events)
-    return apply(id, committedEvents)
+    const events = await contexts(id).commit(execute(command))
+    return apply(id, events)
   }
 
   /**
@@ -59,9 +52,7 @@ function store(commandReducer, eventReducer, options = {}) {
    */
 
   function emit(type, ...args) {
-    [type, '*'].map(t => {
-      emitter.emit(t, ...args)
-    })
+    [type, '*'].forEach(t => emitter.emit(t, ...args))
   }
 
   /**
@@ -73,9 +64,8 @@ function store(commandReducer, eventReducer, options = {}) {
 
   function execute(command) {
     const id = command.payload[pk]
-    const state = get(id)
     const context = contexts(id)
-    const events = commandReducer(state, command, get)
+    const events = commandReducer(get(id), command, get)
     return events.map(context.toEvent)
   }
 
@@ -89,9 +79,8 @@ function store(commandReducer, eventReducer, options = {}) {
    */
 
   function apply(id, events, silent = false) {
-    return currentState[id] = events.reduce((oldState, event) => {
-      let state = eventReducer(oldState, event)
-      let newState = update(oldState, state)
+    return state[id] = events.reduce((oldState, event) => {
+      let newState = update(oldState, eventReducer(oldState, event))
       if (!silent) setImmediate(emit, event.type, event, newState, oldState)
       return newState
     }, get(id))
@@ -105,7 +94,7 @@ function store(commandReducer, eventReducer, options = {}) {
    */
 
   function get(id) {
-    return freeze(id ? currentState[id] : currentState)
+    return freeze(id ? state[id] : state)
   }
 
   /**
