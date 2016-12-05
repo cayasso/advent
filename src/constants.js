@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 export const REPLAYING = 'REPLAYING'
 export const REPLAYED = 'REPLAYED'

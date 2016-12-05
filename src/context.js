@@ -72,7 +72,7 @@ export default ({ engine, apply, resolve }) => {
       }
     }
 
-    return { commit, execute, toEvent }
+    return { commit, resolve: execute, toEvent }
   }
 
   return id => contexts[id] = contexts[id] || context(id)

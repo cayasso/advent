@@ -19,16 +19,16 @@ import freeze from './freeze'
  */
 
 function store(commandReducer, eventReducer, options = {}) {
-  const pk = options.idKey || 'id'
-  const engine = options.engine || createEngine()
-  const emitter = options.emitter || new EventEmitter()
-  const contexts = createContext({ engine, apply, resolve })
-
   if ('function' !== typeof commandReducer) {
     throw new Error('Command reducer must be a function.')
   } else if ('function' !== typeof eventReducer) {
     throw new Error('Event reducer must be a function.')
   }
+
+  const pk = options.idKey || 'id'
+  const engine = options.engine || createEngine()
+  const emitter = options.emitter || new EventEmitter()
+  const context = createContext({ engine, apply, resolve })
 
   let state = {}
 
@@ -41,8 +41,7 @@ function store(commandReducer, eventReducer, options = {}) {
 
   async function resolve(command) {
     const id = command.payload[pk]
-    const events = await contexts(id).commit(execute(command))
-    return apply(id, events)
+    return apply(id, await context(id).commit(execute(command)))
   }
 
   /**
@@ -64,9 +63,8 @@ function store(commandReducer, eventReducer, options = {}) {
 
   function execute(command) {
     const id = command.payload[pk]
-    const context = contexts(id)
-    const events = commandReducer(get(id), command, get)
-    return events.map(context.toEvent)
+    return commandReducer(getState(id), command, getState)
+      .map(context(id).toEvent)
   }
 
   /**
@@ -83,7 +81,7 @@ function store(commandReducer, eventReducer, options = {}) {
       let newState = update(oldState, eventReducer(oldState, event))
       if (!silent) setImmediate(emit, event.type, event, newState, oldState)
       return newState
-    }, get(id))
+    }, getState(id))
   }
 
   /**
@@ -93,14 +91,14 @@ function store(commandReducer, eventReducer, options = {}) {
    * @return {Mixed}
    */
 
-  function get(id) {
+  function getState(id) {
     return freeze(id ? state[id] : state)
   }
 
   /**
    * Subscribe to changes from the store.
    *
-   * @param {string} type
+   * @param {String} type
    * @param {Function} fn
    * @return {Function} off
    */
@@ -117,18 +115,15 @@ function store(commandReducer, eventReducer, options = {}) {
   /**
    * Send a command to the store to be executed.
    *
-   * @param {object} command
+   * @param {Object} command
    * @return {Promise}
    */
 
   async function dispatch(command) {
     if (Array.isArray(command)) {
-      for (let cmd of command) await dispatch(cmd)
-      return
-    }
-
-    if (!isObject(command)) {
-      throw new Error('Command must be a plain object.')
+      let _state = state
+      for (let cmd of command) _state = await dispatch(cmd)
+      return _state
     }
 
     const { type, payload } = command
@@ -140,11 +135,10 @@ function store(commandReducer, eventReducer, options = {}) {
     } else if ('undefined' === typeof payload[pk]) {
       throw new Error('An entity id is required in command payload.')
     }
-
-    return contexts(payload[pk]).execute({ type, payload })
+    return context(payload[pk]).resolve({ type, payload })
   }
 
-  return Object.assign(dispatch, { getState: get, subscribe, dispatch })
+  return Object.assign(dispatch, { getState, subscribe, dispatch })
 }
 
 /**
@@ -155,10 +149,10 @@ function store(commandReducer, eventReducer, options = {}) {
  * @return {Function}
  */
 
- function packer(type, fn, options = {}) {
-   fn = ('function' === typeof fn) ? fn : f => f
-   return (...args) => ({ type, payload: fn(...args) })
- }
+function packer(type, fn) {
+  fn = ('function' === typeof fn) ? fn : f => f
+  return (...args) => ({ type, payload: fn(...args) })
+}
 
 export const createStore = store
 export const createEvent = packer
