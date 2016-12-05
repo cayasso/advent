@@ -148,7 +148,7 @@ function store(commandReducer, eventReducer, options = {}) {
       throw new Error('Command must have a valid type.')
     } else if ('undefined' === typeof payload || !isObject(payload)) {
       throw new Error('Command must have a payload object.')
-    } else if ('undefined' === typeof payload.id) {
+    } else if ('undefined' === typeof payload[pk]) {
       throw new Error('An entity id is required in command payload.')
     }
 
@@ -159,13 +159,13 @@ function store(commandReducer, eventReducer, options = {}) {
       await context.load()
       await resolve(command)
       await context.drain()
-      return true
+      return get(payload[pk])
     }
 
     if (LOADING === context.status) {
       let task = () => resolve(command)
       context.enqueue(task)
-      return true
+      return get(payload[pk])
     }
 
     return await resolve(command)
@@ -182,25 +182,10 @@ function store(commandReducer, eventReducer, options = {}) {
  * @return {Function}
  */
 
-function packer(type, fn, options = {}) {
-  fn = ('function' === typeof fn) ? fn : identity
-  return (...args) => {
-    let payload = fn(...args)
-    let packet = { type, payload }
-    if (args.length === 1 && args[0] instanceof Error) {
-      packet.error = true;
-    }
-    return packet
-  }
-}
-
-/**
- * Identity function for action type.
- */
-
-function identity(type) {
-  return type
-}
+ function packer(type, fn, options = {}) {
+   fn = ('function' === typeof fn) ? fn : f => f
+   return (...args) => ({ type, payload: fn(...args) })
+ }
 
 export const createStore = store
 export const createEvent = packer
