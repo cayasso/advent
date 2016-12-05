@@ -25,12 +25,11 @@ function store(commandReducer, eventReducer, options = {}) {
     throw new Error('Event reducer must be a function.')
   }
 
+  const state = {}
   const pk = options.idKey || 'id'
   const engine = options.engine || createEngine()
   const emitter = options.emitter || new EventEmitter()
   const context = createContext({ engine, apply, resolve })
-
-  const state = {}
 
   /**
    * Save and resolve an action to update state.
@@ -70,7 +69,7 @@ function store(commandReducer, eventReducer, options = {}) {
   /**
    * Apply a list of events to an specific state.
    *
-   * @param {string} id
+   * @param {String} id
    * @param {Array} events
    * @param {Boolean} silent
    * @return {Mixed}
