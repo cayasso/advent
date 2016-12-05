@@ -17,7 +17,7 @@ import uuid from 'uuid'
  * @api public
  */
 
-export default ({ engine, apply }) => {
+export default ({ engine, apply, resolve }) => {
   let contexts = {}
 
   /**
@@ -38,7 +38,7 @@ export default ({ engine, apply }) => {
      * Load history of events of this context id.
      *
      * @return {Promise}
-     * @api public
+     * @api private
      */
 
     async function load() {
@@ -67,27 +67,27 @@ export default ({ engine, apply }) => {
     }
 
     /**
-     * Add an event function to queue.
+     * Execute an event.
      *
-     * @param {Function} fn
-     * @return {Array}
-     * @api public
-     */
-
-    function enqueue(fn) {
-      console.log('ENQUEEEE *********************************')
-      return queue.push(fn)
-    }
-
-    /**
-     * Drain queue.
-     *
+     * @param {Object} command
      * @return {Promise}
      * @api public
      */
 
-    async function drain() {
-      while (queue.length) await queue.shift()()
+    async function execute(command) {
+      if (EMPTY === status) {
+        await load()
+        const state = await resolve(command)
+        while (queue.length) await queue.shift()()
+        return state
+      }
+
+      if (LOADING === status) {
+        return new Promise((accept, reject) =>
+          queue.push(() => resolve(command).then(accept, reject)))
+      }
+
+      return await resolve(command)
     }
 
     /**
@@ -123,16 +123,7 @@ export default ({ engine, apply }) => {
       }
     }
 
-    return {
-      load,
-      commit,
-      drain,
-      toEvent,
-      enqueue,
-      get status() {
-        return status
-      }
-    }
+    return { commit, execute, toEvent }
   }
 
   // return context or create a new one and return it

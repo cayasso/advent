@@ -27,7 +27,7 @@ function store(commandReducer, eventReducer, options = {}) {
   const pk = options.idKey || 'id'
   const engine = options.engine || createEngine()
   const emitter = options.emitter || new EventEmitter()
-  const contexts = createContext({ engine, apply })
+  const contexts = createContext({ engine, apply, resolve })
 
   if ('function' !== typeof commandReducer) {
     throw new Error('Command reducer must be a function.')
@@ -142,7 +142,7 @@ function store(commandReducer, eventReducer, options = {}) {
       throw new Error('Command must be a plain object.')
     }
 
-    let { type, payload } = command
+    const { type, payload } = command
 
     if (!type || 'string' !== typeof type) {
       throw new Error('Command must have a valid type.')
@@ -152,23 +152,7 @@ function store(commandReducer, eventReducer, options = {}) {
       throw new Error('An entity id is required in command payload.')
     }
 
-    command = freeze({ type, payload })
-    const context = contexts(payload[pk])
-
-    if (EMPTY === context.status) {
-      await context.load()
-      await resolve(command)
-      await context.drain()
-      return get(payload[pk])
-    }
-
-    if (LOADING === context.status) {
-      let task = () => resolve(command)
-      context.enqueue(task)
-      return get(payload[pk])
-    }
-
-    return await resolve(command)
+    return contexts(payload[pk]).execute({ type, payload })
   }
 
   return Object.assign(dispatch, { getState: get, subscribe, dispatch })
