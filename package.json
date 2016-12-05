@@ -1,6 +1,6 @@
 {
   "name": "advent",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Event sourcing made simple.",
   "keywords": [
     "store",
@@ -46,7 +46,9 @@
     "semicolon": false,
     "esnext": true,
     "space": 2,
-    "ignores": ["test/**"],
+    "ignores": [
+      "test/**"
+    ],
     "rules": {
       "no-unused-vars": 0,
       "object-curly-spacing": 0,
