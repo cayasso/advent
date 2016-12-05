@@ -4,10 +4,10 @@
  * Are we running in a production build?
  */
 
-var production = false
+let production = false
 try {
   production = process.env.NODE_ENV === 'production'
-} catch (e) {}
+} catch (err) {}
 
 /**
  * Is Freezable?
@@ -16,8 +16,10 @@ try {
  * @return {Boolean}
  */
 
-function isFreezable (object) {
-  if (object === null) return false
+function isFreezable(object) {
+  if (object === null) {
+    return false
+  }
   return Array.isArray(object) ||
   typeof object === 'object'
 }
@@ -43,8 +45,10 @@ function needsFreezing(object) {
 function recur(object) {
   Object.freeze(object)
   Object.keys(object).forEach(key => {
-    let value = object[key]
-    if (needsFreezing(value)) recur(value)
+    const value = object[key]
+    if (needsFreezing(value)) {
+      recur(value)
+    }
   })
   return object
 }
@@ -60,7 +64,11 @@ function recur(object) {
  */
 
 export default object => {
-  if (production) return object
-  if (needsFreezing(object)) recur(object)
+  if (production) {
+    return object
+  }
+  if (needsFreezing(object)) {
+    recur(object)
+  }
   return object
 }

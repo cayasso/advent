@@ -1,13 +1,12 @@
-import { INCREMENTED, DECREMENTED } from './constants'
+import {INCREMENTED, DECREMENTED} from './constants'
 
 // Initial state
-const initialState = { count: 0 }
+const initialState = {count: 0}
 
 // This reducer returns what would be merged
 // with the current state and be returned as new state
 export default (state = initialState, event) => {
-
-  switch(event.type) {
+  switch (event.type) {
 
     case INCREMENTED:
       return {
@@ -22,5 +21,4 @@ export default (state = initialState, event) => {
     default:
       return state
   }
-
 }

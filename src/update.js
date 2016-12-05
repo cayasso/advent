@@ -35,11 +35,11 @@ export default (original, update, ...args) => {
  */
 
 function resolve(original, updates, isNull) {
-  return isPlainObject(original) && isPlainObject(updates)
-    ? object(original, updates, isNull)
-    : isArray(original) && isArray(updates)
-    ? array(original, updates)
-    : updates === undefined ? original : updates
+  return isPlainObject(original) && isPlainObject(updates) ?
+    object(original, updates, isNull) :
+    isArray(original) && isArray(updates) ?
+    array(original, updates) :
+    updates === undefined ? original : updates
 }
 
 /**
@@ -54,7 +54,7 @@ function object(original, updates, isNull) {
   return keys(updates).reduce((obj, key, i) => {
     obj[key] = resolve(original[key], updates[key])
     return obj
-  }, { ...original })
+  }, {...original})
 }
 
 /**

@@ -1,4 +1,4 @@
-import { createCommand, createEvent } from '../../src/index'
+import {createCommand, createEvent} from '../../src/index'
 
 // Constants
 export const INCREMENT = 'increment'

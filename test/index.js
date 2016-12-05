@@ -1,29 +1,29 @@
 import * as advent from '../src/index'
 
-let db = null
-let engine = null
-let testEvents = [
-  { id: 1, type: 'created', payload: { a: 1 } },
-  { id: 1, type: 'updated', payload: { a: 2 } },
-  { id: 1, type: 'tested', payload: { a: 3 } },
-  { id: 2, type: 'created', payload: { a: 1 } },
-  { id: 3, type: 'created', payload: { a: 2 } },
-  { id: 3, type: 'created', payload: { a: 3 } }
+const db = null
+const engine = null
+const testEvents = [
+  {id: 1, type: 'created', payload: {a: 1}},
+  {id: 1, type: 'updated', payload: {a: 2}},
+  {id: 1, type: 'tested', payload: {a: 3}},
+  {id: 2, type: 'created', payload: {a: 1}},
+  {id: 3, type: 'created', payload: {a: 2}},
+  {id: 3, type: 'created', payload: {a: 3}}
 ]
 
 function commandReducer(state, command) {
-  switch(command.type) {
+  switch (command.type) {
 
     case 'increment':
       return [{
         type: 'incremented',
-        payload: { value: command.payload.value }
+        payload: {value: command.payload.value}
       }]
 
     case 'decrement':
       return [{
         type: 'decremented',
-        payload: { value: command.payload.value }
+        payload: {value: command.payload.value}
       }]
 
     default:
@@ -31,10 +31,10 @@ function commandReducer(state, command) {
   }
 }
 
-const initialState = { value: 0 }
+const initialState = {value: 0}
 
 function eventReducer(state = initialState, event) {
-  switch(event.type) {
+  switch (event.type) {
 
     case 'incremented':
       return {
@@ -54,7 +54,6 @@ function eventReducer(state = initialState, event) {
 }
 
 describe('advent', () => {
-
   it('should be a function', () => {
     advent.should.be.a.Function
   })
@@ -83,7 +82,7 @@ describe('advent', () => {
 
     it('should error on command without type', done => {
       const store = advent.createStore(commandReducer, eventReducer)
-      store.dispatch({ payload: {} }).catch(e => {
+      store.dispatch({payload: {}}).catch(e => {
         e.should.match(/must have a valid type/)
         done()
       })
@@ -91,7 +90,7 @@ describe('advent', () => {
 
     it('should error on command without payload', done => {
       const store = advent.createStore(commandReducer, eventReducer)
-      store.dispatch({ type: 'increment' }).catch(e => {
+      store.dispatch({type: 'increment'}).catch(e => {
         e.should.match(/must have a payload object/)
         done()
       })
@@ -99,45 +98,44 @@ describe('advent', () => {
 
     it('should error on command without entity id in payload', done => {
       const store = advent.createStore(commandReducer, eventReducer)
-      store.dispatch({ type: 'increment', payload: { value: 1 } }).catch(e => {
+      store.dispatch({type: 'increment', payload: {value: 1}}).catch(e => {
         e.should.match(/entity id is required/)
         done()
       })
     })
 
     it('should dispatch a command to alter state', async () => {
-      const payload = { id: 1, value: 10 }
+      const payload = {id: 1, value: 10}
       const store = advent.createStore(commandReducer, eventReducer)
-      await store.dispatch({ type: 'increment', payload })
+      await store.dispatch({type: 'increment', payload})
       store.getState(1).should.be.eql(payload)
     })
 
     it('should dispatch multiple commands to alter state', async () => {
       const store = advent.createStore(commandReducer, eventReducer)
       await store.dispatch([
-        { type: 'increment', payload: { id: 1, value: 10 } },
-        { type: 'decrement', payload: { id: 1, value: 5 } },
-        { type: 'increment', payload: { id: 1, value: 15 } }
+        {type: 'increment', payload: {id: 1, value: 10}},
+        {type: 'decrement', payload: {id: 1, value: 5}},
+        {type: 'increment', payload: {id: 1, value: 15}}
       ])
-      store.getState(1).should.be.eql({ id: 1, value: 20 })
+      store.getState(1).should.be.eql({id: 1, value: 20})
     })
 
     it('should dispatch a command with store method shortcut', async () => {
-      const payload = { id: 1, value: 10 }
+      const payload = {id: 1, value: 10}
       const store = advent.createStore(commandReducer, eventReducer)
-      await store({ type: 'increment', payload })
+      await store({type: 'increment', payload})
       store.getState(1).should.be.eql(payload)
     })
 
     it('should dispatch multiple commands with store method shortcut', async () => {
       const store = advent.createStore(commandReducer, eventReducer)
       await store([
-        { type: 'increment', payload: { id: 1, value: 10 } },
-        { type: 'decrement', payload: { id: 1, value: 5 } },
-        { type: 'increment', payload: { id: 1, value: 15 } }
+        {type: 'increment', payload: {id: 1, value: 10}},
+        {type: 'decrement', payload: {id: 1, value: 5}},
+        {type: 'increment', payload: {id: 1, value: 15}}
       ])
-      store.getState(1).should.be.eql({ id: 1, value: 20 })
+      store.getState(1).should.be.eql({id: 1, value: 20})
     })
   })
-
 })

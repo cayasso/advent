@@ -1,13 +1,13 @@
 'use strict'
 
 import 'babel-polyfill'
-import { EMPTY, LOADING } from './constants'
+import { EventEmitter } from 'events'
 import isObject from 'lodash.isplainobject'
 import createEngine from 'advent-memory'
 import createContext from './context'
-import { EventEmitter } from 'events'
 import update from './update'
 import freeze from './freeze'
+import { EMPTY, LOADING } from './constants'
 
 /**
  * Create the store.
@@ -19,9 +19,9 @@ import freeze from './freeze'
  */
 
 function store(commandReducer, eventReducer, options = {}) {
-  if ('function' !== typeof commandReducer) {
+  if (typeof commandReducer !== 'function') {
     throw new Error('Command reducer must be a function.')
-  } else if ('function' !== typeof eventReducer) {
+  } else if (typeof eventReducer !== 'function') {
     throw new Error('Event reducer must be a function.')
   }
 
@@ -30,7 +30,7 @@ function store(commandReducer, eventReducer, options = {}) {
   const emitter = options.emitter || new EventEmitter()
   const context = createContext({ engine, apply, resolve })
 
-  let state = {}
+  const state = {}
 
   /**
    * Save and resolve an action to update state.
@@ -77,11 +77,14 @@ function store(commandReducer, eventReducer, options = {}) {
    */
 
   function apply(id, events, silent = false) {
-    return state[id] = events.reduce((oldState, event) => {
-      let newState = update(oldState, eventReducer(oldState, event))
-      if (!silent) setImmediate(emit, event.type, event, newState, oldState)
+    state[id] = events.reduce((oldState, event) => {
+      const newState = update(oldState, eventReducer(oldState, event))
+      if (!silent) {
+        setImmediate(emit, event.type, event, newState, oldState)
+      }
       return newState
     }, getState(id))
+    return state[id]
   }
 
   /**
@@ -104,7 +107,7 @@ function store(commandReducer, eventReducer, options = {}) {
    */
 
   function subscribe(type, fn) {
-    if ('function' === typeof type) {
+    if (typeof type === 'function') {
       fn = type
       type = '*'
     }
@@ -122,17 +125,19 @@ function store(commandReducer, eventReducer, options = {}) {
   async function dispatch(command) {
     if (Array.isArray(command)) {
       let _state = state
-      for (let cmd of command) _state = await dispatch(cmd)
+      for (const cmd of command) {
+        _state = await dispatch(cmd)
+      }
       return _state
     }
 
     const { type, payload } = command
 
-    if (!type || 'string' !== typeof type) {
+    if (!type || typeof type !== 'string') {
       throw new Error('Command must have a valid type.')
-    } else if ('undefined' === typeof payload || !isObject(payload)) {
+    } else if (typeof payload === 'undefined' || !isObject(payload)) {
       throw new Error('Command must have a payload object.')
-    } else if ('undefined' === typeof payload[pk]) {
+    } else if (typeof payload[pk] === 'undefined') {
       throw new Error('An entity id is required in command payload.')
     }
     return context(payload[pk]).resolve({ type, payload })
@@ -150,7 +155,7 @@ function store(commandReducer, eventReducer, options = {}) {
  */
 
 function packer(type, fn) {
-  fn = ('function' === typeof fn) ? fn : f => f
+  fn = (typeof fn === 'function') ? fn : f => f
   return (...args) => ({ type, payload: fn(...args) })
 }
 
