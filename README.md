@@ -10,3 +10,8 @@ This is currently a Node event sourcing experiment inspired on the talk by Jér�
 Check the [example](https://github.com/cayasso/advent/tree/master/examples/sum)
 
 ### Test and other goodies are comming soon.
+
+## Credits
+
+- Copyright © 2016 Jonathan Brumley &lt;cayasso@gmail.com&gt;
+- Licensed under MIT.
