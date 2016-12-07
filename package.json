@@ -43,6 +43,7 @@
     "test"
   ],
   "xo": {
+    "curly": 0,
     "semicolon": false,
     "esnext": true,
     "space": 2,

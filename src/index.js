@@ -130,16 +130,24 @@ function store(commandReducer, eventReducer, options = {}) {
       return _state
     }
 
-    const { type, payload } = command
+    const { type, payload, invalidate = false } = command
 
-    if (!type || typeof type !== 'string') {
+    if (!invalidate && (!type || typeof type !== 'string')) {
       throw new Error('Command must have a valid type.')
     } else if (typeof payload === 'undefined' || !isObject(payload)) {
       throw new Error('Command must have a payload object.')
     } else if (typeof payload[pk] === 'undefined') {
       throw new Error('An entity id is required in command payload.')
     }
-    return context(payload[pk]).resolve({ type, payload })
+
+    if (invalidate) {
+      delete state[payload[pk]]
+      if (!type) {
+        return getState(payload[pk])
+      }
+    }
+
+    return context(payload[pk]).resolve(command)
   }
 
   return Object.assign(dispatch, { getState, subscribe, dispatch })
@@ -153,9 +161,9 @@ function store(commandReducer, eventReducer, options = {}) {
  * @return {Function}
  */
 
-function packer(type, fn) {
+function packer(type, fn, options = {}) {
   fn = (typeof fn === 'function') ? fn : f => f
-  return (...args) => ({ type, payload: fn(...args) })
+  return (...args) => ({ ...options, type, payload: fn(...args) })
 }
 
 export const createStore = store

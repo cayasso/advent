@@ -1,4 +1,5 @@
 import * as advent from '../src/index'
+import should from 'should'
 
 const db = null
 const engine = null
@@ -136,6 +137,32 @@ describe('advent', () => {
         {type: 'increment', payload: {id: 1, value: 15}}
       ])
       store.getState(1).should.be.eql({id: 1, value: 20})
+    })
+
+    it('should invalidate state', async () => {
+      const store = advent.createStore(commandReducer, eventReducer)
+      await store([
+        {type: 'increment', payload: {id: 1, value: 10}},
+        {type: 'decrement', payload: {id: 1, value: 5}},
+        {type: 'increment', payload: {id: 1, value: 15}}
+      ])
+
+      await store({invalidate: true, payload: {id: 1} });
+
+      (store.getState(1) === undefined).should.be.true()
+    })
+
+    it('should invalidate state and then execute command', async () => {
+      const store = advent.createStore(commandReducer, eventReducer)
+      await store([
+        {type: 'increment', payload: {id: 1, value: 10}},
+        {type: 'decrement', payload: {id: 1, value: 5}},
+        {type: 'increment', payload: {id: 1, value: 15}}
+      ])
+
+      await store({ type: 'increment', invalidate: true, payload: {id: 1, value: 9} });
+
+      store.getState(1).should.be.eql({id: 1, value: 9})
     })
   })
 })
