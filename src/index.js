@@ -40,7 +40,9 @@ function store(commandReducer, eventReducer, options = {}) {
 
   async function resolve(command) {
     const id = command.payload[pk]
-    return apply(id, await context(id).commit(execute(command)))
+    const events = await execute(command)
+    const savedEvents = await context(id).commit(events)
+    return apply(id, savedEvents)
   }
 
   /**
@@ -162,6 +164,10 @@ function store(commandReducer, eventReducer, options = {}) {
  */
 
 function packer(type, fn, options = {}) {
+  if (isObject(fn)) {
+    options = fn
+    fn = undefined
+  }
   fn = (typeof fn === 'function') ? fn : f => f
   return (...args) => ({ ...options, type, payload: fn(...args) })
 }
