@@ -17,7 +17,9 @@
     "test": "xo && ./node_modules/.bin/mocha",
     "build": "npm run clean && ./node_modules/.bin/babel src -d lib",
     "prepublish": "npm run build",
-    "clean": "rm -rf lib/"
+    "clean": "rm -rf lib/",
+    "preversion": "npm run test",
+    "postversion": "git push && git push --tags && npm publish"
   },
   "license": "MIT",
   "dependencies": {
