@@ -19,7 +19,8 @@
     "prepublish": "npm run build",
     "clean": "rm -rf lib/",
     "preversion": "npm run test",
-    "postversion": "git push && git push --tags && npm publish"
+    "postversion": "git push && git push --tags && npm publish",
+    "patch": "npm version patch -m \"[release] %s\""
   },
   "license": "MIT",
   "dependencies": {
