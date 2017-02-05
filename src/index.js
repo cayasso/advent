@@ -12,16 +12,16 @@ import { EMPTY, LOADING } from './constants'
 /**
  * Create the store.
  *
- * @param {Function} commandReducer
- * @param {Function} eventReducer
+ * @param {Function} decider
+ * @param {Function} reducer
  * @param {Object} [options]
  * @return {Function} store
  */
 
-function store(commandReducer, eventReducer, options = {}) {
-  if (typeof commandReducer !== 'function') {
+function store(decider, reducer, options = {}) {
+  if (typeof decider !== 'function') {
     throw new Error('Command reducer must be a function.')
-  } else if (typeof eventReducer !== 'function') {
+  } else if (typeof reducer !== 'function') {
     throw new Error('Event reducer must be a function.')
   }
 
@@ -63,10 +63,10 @@ function store(commandReducer, eventReducer, options = {}) {
    * @return {Array} events
    */
 
-  function execute(command) {
+  async function execute(command) {
     const id = command.payload[pk]
-    return commandReducer(getState(id), command, getState)
-      .map(context(id).toEvent)
+    const events = await decider(getState(id), command, getState)
+    return events.map(context(id).toEvent)
   }
 
   /**
@@ -80,7 +80,7 @@ function store(commandReducer, eventReducer, options = {}) {
 
   function apply(id, events, silent = false) {
     state[id] = events.reduce((oldState, event) => {
-      const newState = update(oldState, eventReducer(oldState, event))
+      const newState = update(oldState, reducer(oldState, event))
       if (!silent) {
         setImmediate(emit, event.type, event, newState, oldState)
       }
