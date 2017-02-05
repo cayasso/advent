@@ -5,7 +5,7 @@ import last from 'lodash.last'
 import isObject from 'lodash.isplainobject'
 import { EMPTY, LOADING, LOADED, REPLAYING } from './constants'
 
-export default ({ engine, apply, resolve }) => {
+export default ({ engine, entity, apply, resolve }) => {
   const contexts = {}
 
   function context(id) {
@@ -58,19 +58,19 @@ export default ({ engine, apply, resolve }) => {
         throw new Error('Event must have a payload.')
       }
 
-      const { type, entity = '', meta = {}, payload } = event
+      const { type, meta = {}, payload } = event
 
       payload.id = payload.id || id
 
       return {
         type,
         meta,
-        entity,
         payload,
         id: uuid.v4(),
         entityId: id,
         ts: Date.now(),
-        version: ++version
+        version: ++version,
+        entity: event.entity || entity
       }
     }
 

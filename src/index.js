@@ -27,9 +27,10 @@ function store(commandReducer, eventReducer, options = {}) {
 
   const state = {}
   const pk = options.idKey || 'id'
+  const entity = options.entity || ''
   const engine = options.engine || createEngine()
   const emitter = options.emitter || new EventEmitter()
-  const context = createContext({ engine, apply, resolve })
+  const context = createContext({ engine, entity, apply, resolve })
 
   /**
    * Save and resolve an action to update state.
