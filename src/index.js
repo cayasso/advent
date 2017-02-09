@@ -25,7 +25,7 @@ function store(decider, reducer, options = {}) {
     throw new Error('Event reducer must be a function.')
   }
 
-  const state = {}
+  let state = {}
   const pk = options.idKey || 'id'
   const entity = options.entity || ''
   const engine = options.engine || createEngine()
@@ -97,7 +97,7 @@ function store(decider, reducer, options = {}) {
    */
 
   function getState(id) {
-    return freeze(id ? state[id] : state)
+    return freeze(id ? { ...state[id] } : { ...state })
   }
 
   /**
@@ -139,12 +139,16 @@ function store(decider, reducer, options = {}) {
       throw new Error('Command must have a valid type.')
     } else if (typeof payload === 'undefined' || !isObject(payload)) {
       throw new Error('Command must have a payload object.')
-    } else if (typeof payload[pk] === 'undefined') {
+    } else if (!invalidate && typeof payload[pk] === 'undefined') {
       throw new Error('An entity id is required in command payload.')
     }
 
     if (invalidate) {
-      delete state[payload[pk]]
+      if (payload[pk]) {
+        delete state[payload[pk]]
+      } else {
+        state = {}
+      }
       if (!type) {
         return getState(payload[pk])
       }
