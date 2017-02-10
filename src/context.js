@@ -6,7 +6,7 @@ import isObject from 'lodash.isplainobject'
 import { EMPTY, LOADING, LOADED, REPLAYING } from './constants'
 
 export default ({ engine, entity, apply, resolve }) => {
-  const contexts = {}
+  let contexts = {}
 
   function context(id) {
     let status = EMPTY
@@ -29,6 +29,11 @@ export default ({ engine, entity, apply, resolve }) => {
 
     function commit(events) {
       return engine.save(events)
+    }
+
+    function clear() {
+      delete contexts[id]
+      return id
     }
 
     async function execute(command) {
@@ -74,11 +79,19 @@ export default ({ engine, entity, apply, resolve }) => {
       }
     }
 
-    return { commit, resolve: execute, toEvent }
+    return { commit, resolve: execute, toEvent, clear }
   }
 
-  return id => {
+  function createContext(id) {
     contexts[id] = contexts[id] || context(id)
     return contexts[id]
   }
+
+  createContext.clear = () => {
+    const ids = Object.keys(contexts)
+    contexts = {}
+    return ids
+  }
+
+  return createContext
 }

@@ -5,7 +5,6 @@
  */
 
 import isPlainObject from 'lodash.isplainobject'
-import freeze from './freeze'
 
 /**
  * Module constants.
@@ -24,7 +23,7 @@ const keys = Object.keys
 
 export default (original, update, ...args) => {
   update = args.reduce((o, n) => resolve(o, n, true), update)
-  return freeze(resolve(original, update))
+  return resolve(original, update)
 }
 
 /**

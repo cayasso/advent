@@ -6,7 +6,6 @@ import isObject from 'lodash.isplainobject'
 import createEngine from 'advent-memory'
 import createContext from './context'
 import update from './update'
-import freeze from './freeze'
 import { EMPTY, LOADING } from './constants'
 
 /**
@@ -97,7 +96,23 @@ function store(decider, reducer, options = {}) {
    */
 
   function getState(id) {
-    return freeze(id ? { ...state[id] } : { ...state })
+    return id ? state[id] : state
+  }
+
+  /**
+   * Clear a single entity state or all states.
+   *
+   * @param {String|Undefined} id
+   * @return {Array}
+   */
+
+  function clearState(id) {
+    if (!id) {
+      state = {}
+      return context.clear()
+    }
+    delete state[id]
+    return context(id).clear()
   }
 
   /**
@@ -133,25 +148,18 @@ function store(decider, reducer, options = {}) {
       return _state
     }
 
-    const { type, payload, invalidate = false } = command
+    const { type, payload = {}, invalidate = false } = command
 
     if (!invalidate && (!type || typeof type !== 'string')) {
       throw new Error('Command must have a valid type.')
-    } else if (typeof payload === 'undefined' || !isObject(payload)) {
+    } else if (!invalidate && (typeof payload === 'undefined' || !isObject(payload))) {
       throw new Error('Command must have a payload object.')
     } else if (!invalidate && typeof payload[pk] === 'undefined') {
       throw new Error('An entity id is required in command payload.')
     }
 
     if (invalidate) {
-      if (payload[pk]) {
-        delete state[payload[pk]]
-      } else {
-        state = {}
-      }
-      if (!type) {
-        return getState(payload[pk])
-      }
+      return clearState(payload[pk])
     }
 
     return context(payload[pk]).resolve(command)

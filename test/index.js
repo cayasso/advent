@@ -4,12 +4,12 @@ import should from 'should'
 const db = null
 const engine = null
 const testEvents = [
-  {id: 1, type: 'created', payload: {a: 1}},
-  {id: 1, type: 'updated', payload: {a: 2}},
-  {id: 1, type: 'tested', payload: {a: 3}},
-  {id: 2, type: 'created', payload: {a: 1}},
-  {id: 3, type: 'created', payload: {a: 2}},
-  {id: 3, type: 'created', payload: {a: 3}}
+  {id: '1', type: 'created', payload: {a: 1}},
+  {id: '1', type: 'updated', payload: {a: 2}},
+  {id: '1', type: 'tested', payload: {a: 3}},
+  {id: '2', type: 'created', payload: {a: 1}},
+  {id: '3', type: 'created', payload: {a: 2}},
+  {id: '3', type: 'created', payload: {a: 3}}
 ]
 
 function commandReducer(state, command) {
@@ -106,7 +106,7 @@ describe('advent', () => {
     })
 
     it('should dispatch a command to alter state', async () => {
-      const payload = {id: 1, value: 10}
+      const payload = {id: '1', value: 10}
       const store = advent.createStore(commandReducer, eventReducer)
       await store.dispatch({type: 'increment', payload})
       store.getState(1).should.be.eql(payload)
@@ -115,15 +115,15 @@ describe('advent', () => {
     it('should dispatch multiple commands to alter state', async () => {
       const store = advent.createStore(commandReducer, eventReducer)
       await store.dispatch([
-        {type: 'increment', payload: {id: 1, value: 10}},
-        {type: 'decrement', payload: {id: 1, value: 5}},
-        {type: 'increment', payload: {id: 1, value: 15}}
+        {type: 'increment', payload: {id: '1', value: 10}},
+        {type: 'decrement', payload: {id: '1', value: 5}},
+        {type: 'increment', payload: {id: '1', value: 15}}
       ])
-      store.getState(1).should.be.eql({id: 1, value: 20})
+      store.getState(1).should.be.eql({id: '1', value: 20})
     })
 
     it('should dispatch a command with store method shortcut', async () => {
-      const payload = {id: 1, value: 10}
+      const payload = {id: '1', value: 10}
       const store = advent.createStore(commandReducer, eventReducer)
       await store({type: 'increment', payload})
       store.getState(1).should.be.eql(payload)
@@ -132,19 +132,19 @@ describe('advent', () => {
     it('should dispatch multiple commands with store method shortcut', async () => {
       const store = advent.createStore(commandReducer, eventReducer)
       await store([
-        {type: 'increment', payload: {id: 1, value: 10}},
-        {type: 'decrement', payload: {id: 1, value: 5}},
-        {type: 'increment', payload: {id: 1, value: 15}}
+        {type: 'increment', payload: {id: '1', value: 10}},
+        {type: 'decrement', payload: {id: '1', value: 5}},
+        {type: 'increment', payload: {id: '1', value: 15}}
       ])
-      store.getState(1).should.be.eql({id: 1, value: 20})
+      store.getState(1).should.be.eql({id: '1', value: 20})
     })
 
     it('should invalidate state', async () => {
       const store = advent.createStore(commandReducer, eventReducer)
       await store([
-        {type: 'increment', payload: {id: 1, value: 10}},
-        {type: 'decrement', payload: {id: 1, value: 5}},
-        {type: 'increment', payload: {id: 1, value: 15}}
+        {type: 'increment', payload: {id: '1', value: 10}},
+        {type: 'decrement', payload: {id: '1', value: 5}},
+        {type: 'increment', payload: {id: '1', value: 15}}
       ])
 
       await store({invalidate: true, payload: {id: 1} });
@@ -152,17 +152,19 @@ describe('advent', () => {
       (store.getState(1) === undefined).should.be.true()
     })
 
-    it('should invalidate state and then execute command', async () => {
+    it('should invalidate all states', async () => {
       const store = advent.createStore(commandReducer, eventReducer)
       await store([
-        {type: 'increment', payload: {id: 1, value: 10}},
-        {type: 'decrement', payload: {id: 1, value: 5}},
-        {type: 'increment', payload: {id: 1, value: 15}}
+        {type: 'increment', payload: {id: '1', value: 10}},
+        {type: 'increment', payload: {id: '2', value: 10}},
+        {type: 'increment', payload: {id: '3', value: 15}},
+        {type: 'increment', payload: {id: '4', value: 20}}
       ])
 
-      await store({ type: 'increment', invalidate: true, payload: {id: 1, value: 9} });
+      const ids = await store({ type: 'increment', invalidate: true });
 
-      store.getState(1).should.be.eql({id: 1, value: 9})
+      ids.should.be.eql(['1', '2', '3', '4'])
+      Object.keys(store.getState()).length.should.be.eql(0)
     })
   })
 })
