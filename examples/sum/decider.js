@@ -15,8 +15,6 @@ export default (state, command) => {
 
     case DECREMENT:
       return [
-        incremented({ value: 1500 }),
-        decremented({ value: 1000 }),
         decremented({ value: command.payload.value })
       ]
 

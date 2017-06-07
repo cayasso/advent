@@ -72,7 +72,7 @@ describe('advent', () => {
       const store = advent.createStore(decider, reducer)
       store.getState.should.be.a.Function
       store.dispatch.should.be.a.Function
-      //store.subscribe.should.be.a.Function
+      store.subscribe.should.be.a.Function
       store.clearState.should.be.a.Function
     })
   })
@@ -124,7 +124,7 @@ describe('advent', () => {
     it('should subscribe to state changes', async () => {
       const changes = []
       const store = advent.createStore(decider, reducer)
-      store.subscribe(change => changes.push(change))
+      store.subscribe((event, change) => changes.push(change))
       await store.dispatch([
         {type: 'increment', payload: {id: '1', value: 10}},
         {type: 'decrement', payload: {id: '1', value: 5}},
@@ -140,7 +140,7 @@ describe('advent', () => {
     it('should subscribe to specific event type of state changes', async () => {
       const changes = []
       const store = advent.createStore(decider, reducer)
-      store.subscribe('decremented', change => changes.push(change))
+      store.subscribe('decremented', (event, change) => changes.push(change))
       await store.dispatch([
         {type: 'increment', payload: {id: '1', value: 10}},
         {type: 'decrement', payload: {id: '1', value: 5}},
@@ -156,9 +156,9 @@ describe('advent', () => {
     it('should subscribe to state changes of multiple entities', async () => {
       const changes = {}
       const store = advent.createStore(decider, reducer)
-      store.subscribe(change => {
-        changes[change.event.entityId] = changes[change.event.entityId] || []
-        changes[change.event.entityId].push(change)
+      store.subscribe((event, change) => {
+        changes[event.entityId] = changes[event.entityId] || []
+        changes[event.entityId].push(change)
       })
 
       await store.dispatch([
@@ -179,9 +179,9 @@ describe('advent', () => {
     it('should subscribe to specific event type of state changes for multiple entities', async () => {
       const changes = {}
       const store = advent.createStore(decider, reducer)
-      store.subscribe('decremented', change => {
-        changes[change.event.entityId] = changes[change.event.entityId] || []
-        changes[change.event.entityId].push(change)
+      store.subscribe('decremented', (event, change) => {
+        changes[event.entityId] = changes[event.entityId] || []
+        changes[event.entityId].push(change)
       })
 
       await store.dispatch([

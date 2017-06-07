@@ -11,7 +11,7 @@ const store = createStore(decider, reducer)
 
 // Subscribing to store events
 store.subscribe((e, data) => {
-  console.log('event:', data)
+  console.log('event:', e, data)
 })
 
 // Executing commands

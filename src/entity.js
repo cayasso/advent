@@ -39,7 +39,7 @@ export default ({ engine, decider, reducer, emitter, entityName = '' }) => {
       return state = events.reduce((oldState, event) => {
         const newState = update(oldState, reducer(oldState, event))
         if (!silent) {
-          setImmediate(emit, event.type, { event, command, newState, oldState })
+          setImmediate(emit, event.type, event, { command, newState, oldState })
         }
         return newState
       }, state)
