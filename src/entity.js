@@ -14,7 +14,7 @@ export default ({ engine, decider, reducer, emitter, entityName = '' }) => {
     let queue = []
     let version = 0
     let loading = false
-    const init = [{ type: '__init__' }]
+    const init = [{ type: '__init__', payload: {} }]
 
     function clear() {
       stream = []
