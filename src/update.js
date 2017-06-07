@@ -1,68 +1,29 @@
 'use strict'
 
-/**
- * Module dependencies.
- */
-
-import isPlainObject from 'lodash.isplainobject'
-
-/**
- * Module constants.
- */
+import isObject from 'lodash.isplainobject'
 
 const isArray = Array.isArray
 const keys = Object.keys
-
-/**
- * Update the object or array
- *
- * @param {Mixed} original
- * @param {Mixed, ...} updates
- * @return {Mixed}
- */
 
 export default (original, update, ...args) => {
   update = args.reduce((o, n) => resolve(o, n, true), update)
   return resolve(original, update)
 }
 
-/**
- * Resolve the updates
- *
- * @param {Mixed} original
- * @param {Array} updates
- */
-
 function resolve(original, updates, isNull) {
-  return isPlainObject(original) && isPlainObject(updates) ?
+  return isObject(original) && isObject(updates) ?
     object(original, updates, isNull) :
     isArray(original) && isArray(updates) ?
     array(original, updates) :
     updates === undefined ? original : updates
 }
 
-/**
- * Update objects
- *
- * @param {Object} original
- * @param {Array} updates
- * @return {Object}
- */
-
-function object(original, updates, isNull) {
-  return keys(updates).reduce((obj, key, i) => {
+function object(original, updates) {
+  return keys(updates).reduce((obj, key) => {
     obj[key] = resolve(original[key], updates[key])
     return obj
   }, {...original})
 }
-
-/**
- * Update arrays
- *
- * @param {Array} original
- * @param {Array} updates
- * @return {Array}
- */
 
 function array(original, updates) {
   return [...updates]

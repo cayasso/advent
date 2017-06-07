@@ -1,3 +1,5 @@
+'use strict'
+
 import {
   INCREMENT, DECREMENT,
   incremented, decremented
@@ -9,13 +11,13 @@ export default (state, command) => {
   switch (command.type) {
 
     case INCREMENT:
-      return [incremented({count: command.payload.count})]
+      return [incremented({ value: command.payload.value })]
 
     case DECREMENT:
       return [
-        incremented({count: 1500}),
-        decremented({count: 1000}),
-        decremented({count: command.payload.count})
+        incremented({ value: 1500 }),
+        decremented({ value: 1000 }),
+        decremented({ value: command.payload.value })
       ]
 
     default:

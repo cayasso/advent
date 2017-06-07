@@ -1,13 +1,13 @@
+'use strict'
+
 import 'babel-polyfill'
 import { createStore } from '../../src/index'
 import { increment, decrement } from './constants'
-import commandReducer from './commands'
-import eventReducer from './events'
-
-const noop = () => {}
+import decider from './decider'
+import reducer from './reducer'
 
 // Creating store
-const store = createStore(commandReducer, eventReducer)
+const store = createStore(decider, reducer)
 
 // Subscribing to store events
 store.subscribe((e, data) => {
@@ -15,11 +15,11 @@ store.subscribe((e, data) => {
 })
 
 // Executing commands
-store(increment({id: 123, count: 110}))
-store(increment({id: 123, count: 200}))
-store(increment({id: 123, count: 100}))
+store.dispatch(increment({id: 123, value: 110}))
+store.dispatch(increment({id: 123, value: 200}))
+store.dispatch(increment({id: 123, value: 100}))
 
 // Delayed command
 setTimeout(() => {
-  store(decrement({id: 123, count: 10}))
+  store.dispatch(decrement({id: 123, value: 10}))
 }, 500)
