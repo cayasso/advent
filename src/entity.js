@@ -14,7 +14,7 @@ export default ({ engine, decider, reducer, emitter, entityName = '' }) => {
     let queue = []
     let version = 0
     let loading = false
-    let init = [{ type: '__init__' }]
+    const init = [{ type: '__init__' }]
 
     function clear() {
       stream = []
@@ -32,7 +32,7 @@ export default ({ engine, decider, reducer, emitter, entityName = '' }) => {
       loading = true
       const events = append(await engine.load(id))
       loading = false
-      return await reduce(events, null, true)
+      return reduce(events, null, true)
     }
 
     function reduce(events = [], command, silent) {
@@ -81,11 +81,11 @@ export default ({ engine, decider, reducer, emitter, entityName = '' }) => {
 
     function toEvent(event) {
       if (!isObject(event)) {
-        throw new Error('Event must be a plain object.')
+        throw new TypeError('Event must be a plain object.')
       } else if (!event.type || typeof event.type !== 'string') {
-        throw new Error('Event must have a valid type.')
+        throw new TypeError('Event must have a valid type.')
       } else if (typeof event.payload === 'undefined') {
-        throw new Error('Event must have a payload.')
+        throw new TypeError('Event must have a payload.')
       }
 
       const { type, meta = {}, payload } = event

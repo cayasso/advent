@@ -8,9 +8,9 @@ import createEntity from './entity'
 
 export function createStore(decider, reducer, options = {}) {
   if (typeof decider !== 'function') {
-    throw new Error('Decider must be a function.')
+    throw new TypeError('Decider must be a function.')
   } else if (typeof reducer !== 'function') {
-    throw new Error('Reducer must be a function.')
+    throw new TypeError('Reducer must be a function.')
   }
 
   const pk = options.idKey || 'id'
@@ -37,14 +37,14 @@ export function createStore(decider, reducer, options = {}) {
     const { type, payload } = command
 
     if (typeof type !== 'string') {
-      throw new Error('Command must have a valid type.')
+      throw new TypeError('Command must have a valid type.')
     } else if (!isObject(payload)) {
       throw new Error('Command must have a payload object.')
     } else if (typeof payload[pk] === 'undefined') {
-      throw new Error('An entity id is required in command payload.')
+      throw new TypeError('An entity id is required in command payload.')
     }
 
-    return await execute(command)
+    return execute(command)
   }
 
   function subscribe(type, fn) {
