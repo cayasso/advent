@@ -69,14 +69,19 @@ export default ({ engine, decider, reducer, emitter, entityName = '' }) => {
 
     async function decide(command) {
       if (loading) {
+        if (command.payload)
         return new Promise((resolve, reject) =>
           queue.push(() => execute(command).then(resolve, reject)))
       }
       const events = await execute(command)
+      setImmediate(drain)
+      return events
+    }
+
+    async function drain() {
       while (queue.length > 0) {
         await queue.shift()()
       }
-      return events
     }
 
     function toEvent(event) {
