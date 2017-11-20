@@ -9,13 +9,13 @@ function decider(state, command) {
     case 'increment':
       return [{
         type: 'incremented',
-        payload: {value: command.payload.value}
+        payload: {value: state.value + command.payload.value}
       }]
 
     case 'decrement':
       return [{
         type: 'decremented',
-        payload: {value: command.payload.value}
+        payload: {value: state.value - command.payload.value}
       }]
 
     default:
@@ -34,13 +34,13 @@ function reducer(state = initialState, event) {
     case 'incremented':
       return {
         id: event.payload.id,
-        value: state.value + event.payload.value
+        value: event.payload.value
       }
 
     case 'decremented':
       return {
         id: event.payload.id,
-        value: state.value - event.payload.value
+        value: event.payload.value
       }
 
     default:
@@ -68,7 +68,7 @@ describe('advent', () => {
       (() => advent.createStore(decider)).should.throw(/Reducer must be a function/)
     })
 
-    it('should create a store with the right methods', () => {
+    it('should create a store that returns the right methods', () => {
       const store = advent.createStore(decider, reducer)
       store.getState.should.be.a.Function
       store.dispatch.should.be.a.Function
@@ -157,8 +157,8 @@ describe('advent', () => {
       const changes = {}
       const store = advent.createStore(decider, reducer)
       store.subscribe((event, change) => {
-        changes[event.entityId] = changes[event.entityId] || []
-        changes[event.entityId].push(change)
+        changes[event.entity.id] = changes[event.entity.id] || []
+        changes[event.entity.id].push(change)
       })
 
       await store.dispatch([
@@ -180,8 +180,8 @@ describe('advent', () => {
       const changes = {}
       const store = advent.createStore(decider, reducer)
       store.subscribe('decremented', (event, change) => {
-        changes[event.entityId] = changes[event.entityId] || []
-        changes[event.entityId].push(change)
+        changes[event.entity.id] = changes[event.entity.id] || []
+        changes[event.entity.id].push(change)
       })
 
       await store.dispatch([
@@ -207,7 +207,7 @@ describe('advent', () => {
         {type: 'increment', payload: {id: '1', value: 15}}
       ])
 
-      const id = store.clearState('1');
+      const id = store.clearState('1')
 
       id.should.be.eql('1');
       (store.getState('1') === undefined).should.be.true()

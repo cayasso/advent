@@ -14,7 +14,7 @@
   ],
   "author": "Jonathan Brumley <cayasso@gmail.com>",
   "scripts": {
-    "test": "xo && ./node_modules/.bin/mocha",
+    "test": "./node_modules/.bin/mocha",
     "build": "npm run clean && ./node_modules/.bin/babel src -d lib",
     "prepublish": "npm run build",
     "clean": "rm -rf lib/",
@@ -24,22 +24,22 @@
   },
   "license": "MIT",
   "dependencies": {
-    "advent-memory": "^0.1.3",
-    "babel-polyfill": "^6.23.0",
-    "lodash.isplainobject": "^4.0.4",
+    "advent-memory": "^0.1.4",
+    "babel-polyfill": "^6.26.0",
+    "lodash.isplainobject": "^4.0.6",
     "lodash.last": "^3.0.0",
-    "uuid": "^3.0.1"
+    "uuid": "^3.1.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-core": "^6.24.1",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
     "babel-preset-stage-3": "^6.24.1",
-    "eslint-config-prettier": "^1.7.0",
-    "mocha": "^3.4.2",
+    "eslint-config-prettier": "^2.8.0",
+    "mocha": "^4.0.1",
     "pre-commit": "^1.2.2",
-    "should": "^11.2.1",
+    "should": "^13.1.3",
     "xo": "^0.18.2"
   },
   "main": "./lib/index",

@@ -7,16 +7,18 @@ import {
 
 // This reducer returns an array of events to pass on
 // to the event reducer
-export default (state, command) => {
+export default (state, command, push) => {
   switch (command.type) {
 
     case INCREMENT:
-      return [incremented({ value: command.payload.value })]
+      return incremented({
+        value: state.value + command.payload.value
+      })
 
     case DECREMENT:
-      return [
-        decremented({ value: command.payload.value })
-      ]
+      return decremented({
+        value: state.value - command.payload.value
+      })
 
     default:
       return []

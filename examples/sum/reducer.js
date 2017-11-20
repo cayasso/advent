@@ -12,12 +12,12 @@ export default (state = initialState, event) => {
 
     case INCREMENTED:
       return {
-        value: state.value + event.payload.value
+        value: event.payload.value
       }
 
     case DECREMENTED:
       return {
-        value: state.value - event.payload.value
+        value: event.payload.value
       }
 
     default:

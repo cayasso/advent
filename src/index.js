@@ -4,6 +4,7 @@ import 'babel-polyfill'
 import { EventEmitter } from 'events'
 import isObject from 'lodash.isplainobject'
 import createEngine from 'advent-memory'
+import { v4 as uuid } from 'uuid'
 import createEntity from './entity'
 
 export function createStore(decider, reducer, options = {}) {
@@ -14,37 +15,21 @@ export function createStore(decider, reducer, options = {}) {
   }
 
   const pk = options.idKey || 'id'
-  const entityName = options.entity || ''
+  const name = options.entity || ''
   const engine = options.engine || createEngine()
   const emitter = options.emitter || new EventEmitter()
-  const entity = createEntity({ decider, reducer, engine, emitter, entityName })
+  const entity = createEntity({ name, decider, reducer, engine, emitter })
 
-  async function execute(command) {
-    const id = command.payload[pk]
-    const { decide, reduce } = entity(id)
-    return reduce(await decide(command), command)
-  }
-
-  async function dispatch(command) {
-    if (Array.isArray(command)) {
+  async function dispatch(data) {
+    if (Array.isArray(data)) {
       let state
-      for (const cmd of command) {
+      for (const cmd of data) {
         state = await dispatch(cmd)
       }
       return state
     }
-
-    const { type, payload } = command
-
-    if (typeof type !== 'string') {
-      throw new TypeError('Command must have a valid type.')
-    } else if (!isObject(payload)) {
-      throw new Error('Command must have a payload object.')
-    } else if (typeof payload[pk] === 'undefined') {
-      throw new TypeError('An entity id is required in command payload.')
-    }
-
-    return execute(command)
+    const command = toCommand(data)
+    return entity(command.payload[pk]).execute(command)
   }
 
   function subscribe(type, fn) {
@@ -63,6 +48,31 @@ export function createStore(decider, reducer, options = {}) {
   function clearState(id) {
     if (id) return entity(id).clear()
     return entity.clear()
+  }
+
+  function toCommand(command) {
+    if (!isObject(command)) {
+      throw new TypeError('Command must be a plain object.')
+    } else if (typeof command.type !== 'string') {
+      throw new TypeError('Command must have a valid type.')
+    } else if (typeof command.payload === 'undefined') {
+      throw new TypeError('Command must have a payload.')
+    } else if (typeof command.payload[pk] === 'undefined') {
+      throw new TypeError(`An entity ${pk} is required in command payload.`)
+    }
+
+    const { type, user = {}, meta = {}, payload } = command
+    const entity = { name, id: payload.id }
+
+    return {
+      type,
+      user,
+      meta,
+      entity,
+      payload,
+      id: uuid(),
+      ts: Date.now()
+    }
   }
 
   return { dispatch, subscribe, getState, clearState }

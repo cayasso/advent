@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid'
 import last from 'lodash.last'
 import update from './update'
 
-export default ({ engine, decider, reducer, emitter, entityName = '' }) => {
+export default ({ name, engine, decider, reducer, emitter }) => {
   const entities = {}
 
   function createEntity(id) {
@@ -14,6 +14,7 @@ export default ({ engine, decider, reducer, emitter, entityName = '' }) => {
     let queue = []
     let version = 0
     let loading = false
+
     const init = [{ type: '__init__', payload: {} }]
 
     function clear() {
@@ -38,9 +39,7 @@ export default ({ engine, decider, reducer, emitter, entityName = '' }) => {
     function reduce(events = [], command, silent) {
       return state = events.reduce((oldState, event) => {
         const newState = update(oldState, reducer(oldState, event))
-        if (!silent) {
-          setImmediate(emit, event.type, event, { command, newState, oldState })
-        }
+        if (!silent) setImmediate(emit, event.type, event, { command, newState, oldState })
         return newState
       }, state)
     }
@@ -57,8 +56,27 @@ export default ({ engine, decider, reducer, emitter, entityName = '' }) => {
       return events
     }
 
+    async function run(command) {
+      let events = await decider(await load(), command)
+      events = Array.isArray(events) ? events : [events]
+      events = events.map(event => {
+        event.payload.id = id
+        return { ...command, ...event }
+      })
+      return reduce(await commit(events), command)
+    }
+
     async function execute(command) {
-      return commit(await decider(await load(), command))
+      if (loading && command.payload) {
+        return new Promise((resolve, reject) => {
+          queue.push(() => run(command).then(resolve, reject))
+        })
+      }
+      const events = await run(command)
+      setImmediate(async () => {
+        while (queue.length > 0) await queue.shift()()
+      })
+      return events
     }
 
     async function commit(events) {
@@ -93,26 +111,18 @@ export default ({ engine, decider, reducer, emitter, entityName = '' }) => {
         throw new TypeError('Event must have a payload.')
       }
 
-      const { type, meta = {}, payload } = event
-
-      payload.id = payload.id || id
-
       return {
-        type,
-        meta,
-        payload,
+        ...event,
         id: uuid(),
-        entityId: id,
+        cid: event.id,
         ts: Date.now(),
-        version: ++version,
-        entity: event.entity || entityName
+        version: ++version
       }
     }
 
     return {
       clear,
-      decide,
-      reduce,
+      execute,
       get state() {
         return state
       }
