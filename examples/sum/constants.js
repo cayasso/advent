@@ -1,15 +1,26 @@
 'use strict'
 
-import { createCommand, createEvent } from '../../src/index'
+const { createCommand, createEvent } = require('../../src/index')
 
 // Command creators
-export const INCREMENT = 'increment'
-export const DECREMENT = 'decrement'
-export const increment = createCommand(INCREMENT)
-export const decrement = createCommand(DECREMENT)
+const INCREMENT = 'increment'
+const DECREMENT = 'decrement'
+const increment = createCommand(INCREMENT)
+const decrement = createCommand(DECREMENT)
 
 // Event creators
-export const INCREMENTED = 'incremented'
-export const DECREMENTED = 'decremented'
-export const incremented = createEvent(INCREMENTED)
-export const decremented = createEvent(DECREMENTED)
+const INCREMENTED = 'incremented'
+const DECREMENTED = 'decremented'
+const incremented = createEvent(INCREMENTED)
+const decremented = createEvent(DECREMENTED)
+
+module.exports = {
+  INCREMENT,
+  DECREMENT,
+  INCREMENTED,
+  DECREMENTED,
+  increment,
+  decrement,
+  incremented,
+  decremented
+}

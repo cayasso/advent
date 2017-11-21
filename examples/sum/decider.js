@@ -1,13 +1,13 @@
 'use strict'
 
-import {
+const {
   INCREMENT, DECREMENT,
   incremented, decremented
-} from './constants'
+} = require('./constants')
 
 // This reducer returns an array of events to pass on
 // to the event reducer
-export default (state, command, push) => {
+module.exports = (state, command) => {
   switch (command.type) {
 
     case INCREMENT:

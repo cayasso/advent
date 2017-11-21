@@ -1,7 +1,7 @@
 'use strict'
 
-import 'should'
-import * as advent from '../src/index'
+const should = require('should')
+const advent = require('../src/index')
 
 function decider(state, command) {
   switch (command.type) {

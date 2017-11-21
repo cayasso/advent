@@ -1,10 +1,9 @@
 'use strict'
 
-import 'babel-polyfill'
-import { createStore } from '../../src/index'
-import { increment, decrement } from './constants'
-import decider from './decider'
-import reducer from './reducer'
+const { createStore } = require('../../lib/index')
+const { increment, decrement } = require('./constants')
+const decider = require('./decider')
+const reducer = require('./reducer')
 
 // Creating store
 const store = createStore(decider, reducer)

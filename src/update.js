@@ -1,11 +1,11 @@
 'use strict'
 
-import isObject from 'lodash.isplainobject'
+const isObject = require('lodash.isplainobject')
 
 const isArray = Array.isArray
 const keys = Object.keys
 
-export default (original, update, ...args) => {
+module.exports = (original, update, ...args) => {
   update = args.reduce((o, n) => resolve(o, n, true), update)
   return resolve(original, update)
 }

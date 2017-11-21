@@ -1,13 +1,12 @@
 'use strict'
 
-import 'babel-polyfill'
-import { EventEmitter } from 'events'
-import isObject from 'lodash.isplainobject'
-import createEngine from 'advent-memory'
-import { v4 as uuid } from 'uuid'
-import createEntity from './entity'
+const { EventEmitter } = require('events')
+const isObject = require('lodash.isplainobject')
+const createEngine = require('advent-memory')
+const uuid = require('uuid').v4
+const createEntity = require('./entity')
 
-export function createStore(decider, reducer, options = {}) {
+function createStore(decider, reducer, options = {}) {
   if (typeof decider !== 'function') {
     throw new TypeError('Decider must be a function.')
   } else if (typeof reducer !== 'function') {
@@ -18,7 +17,7 @@ export function createStore(decider, reducer, options = {}) {
   const name = options.entity || ''
   const engine = options.engine || createEngine()
   const emitter = options.emitter || new EventEmitter()
-  const entity = createEntity({ name, decider, reducer, engine, emitter })
+  const entity = createEntity({ decider, reducer, engine, emitter })
 
   async function dispatch(data) {
     if (Array.isArray(data)) {
@@ -87,5 +86,8 @@ function packer(type, fn, options = {}) {
   return (...args) => ({ ...options, type, payload: fn(...args) })
 }
 
-export const createEvent = packer
-export const createCommand = packer
+module.exports = {
+  createStore,
+  createEvent: packer,
+  createCommand: packer
+}
