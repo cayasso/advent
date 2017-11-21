@@ -2,7 +2,6 @@
 
 const isObject = require('lodash.isplainobject')
 const uuid = require('uuid').v4
-const last = require('lodash.last')
 const update = require('./update')
 
 module.exports = ({ engine, decider, reducer, emitter }) => {
@@ -12,7 +11,6 @@ module.exports = ({ engine, decider, reducer, emitter }) => {
     let state
     let stream = []
     let queue = []
-    let version = 0
     let loading = false
 
     const init = [{ type: '__init__', payload: {} }]
@@ -20,7 +18,6 @@ module.exports = ({ engine, decider, reducer, emitter }) => {
     function clear() {
       stream = []
       queue = []
-      version = 0
       loading = false
       state = undefined
       return id
@@ -51,8 +48,6 @@ module.exports = ({ engine, decider, reducer, emitter }) => {
     function append(events) {
       if (events.length < 1) return []
       stream = [...stream, ...events]
-      const event = last(stream)
-      version = 'version' in event ? event.version : version
       return events
     }
 
@@ -98,8 +93,7 @@ module.exports = ({ engine, decider, reducer, emitter }) => {
         ...event,
         id: uuid(),
         cid: event.id,
-        ts: Date.now(),
-        version: ++version
+        ts: Date.now()
       }
     }
 
