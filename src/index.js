@@ -97,7 +97,7 @@ function packer(type, fn, options = {}) {
     } else {
       data = { payload: data }
     }
-    return { ...options, ...data }
+    return { ...options, ...data, type }
   }
 }
 
