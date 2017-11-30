@@ -82,8 +82,23 @@ function packer(type, fn, options = {}) {
     options = fn
     fn = undefined
   }
+
   fn = (typeof fn === 'function') ? fn : f => f
-  return (...args) => ({ ...options, type, payload: fn(...args) })
+
+  return (...args) => {
+    let data = fn(...args)
+
+    if (isObject(data)) {
+      let { user, meta, entity, ...payload } = data
+      user = user || options.user
+      meta = meta || options.meta
+      entity = entity || options.entity
+      data = { user, meta, entity, payload }
+    } else {
+      data = { payload: data }
+    }
+    return { ...options, ...data }
+  }
 }
 
 module.exports = {
