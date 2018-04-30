@@ -34,10 +34,10 @@ module.exports = ({ engine, decider, reducer, emitter }) => {
     }
 
     function reduce(events = [], command, silent) {
-      return state = events.reduce((oldState, event) => {
-        const newState = update(oldState, reducer(oldState, event))
-        if (!silent) setImmediate(emit, event.type, event, { command, newState, oldState })
-        return newState
+      return events.reduce((oldState, event) => {
+        state = update(oldState, reducer(oldState, event))
+        if (!silent) emit(event.type, event, { command, oldState, newState: state })
+        return state
       }, state)
     }
 
