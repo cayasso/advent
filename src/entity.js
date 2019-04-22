@@ -4,10 +4,10 @@ const isObject = require('lodash.isplainobject')
 const uuid = require('uuid').v4
 const update = require('./update')
 
-module.exports = ({ engine, decider, reducer, emitter }) => {
+const createEntity = ({ engine, decider, reducer, emitter }) => {
   const entities = {}
 
-  function createEntity(id) {
+  const getEntity = id => {
     let state
     let stream = []
     let queue = []
@@ -15,7 +15,7 @@ module.exports = ({ engine, decider, reducer, emitter }) => {
 
     const init = [{ type: '__init__', payload: {} }]
 
-    function clear() {
+    const clear = () => {
       stream = []
       queue = []
       loading = false
@@ -23,7 +23,7 @@ module.exports = ({ engine, decider, reducer, emitter }) => {
       return id
     }
 
-    async function load(reload) {
+    const load = async reload => {
       if (reload) clear()
       if (state) return state
       reduce(init, null, true)
@@ -33,40 +33,40 @@ module.exports = ({ engine, decider, reducer, emitter }) => {
       return reduce(events, null, true)
     }
 
-    function reduce(events = [], command, silent) {
+    const reduce = (events = [], command, silent) => {
       return events.reduce((oldState, event) => {
         state = update(oldState, reducer(oldState, event))
-        if (!silent) emit(event.type, event, { command, oldState, newState: state })
+        if (!silent) emitter.emit(id, event, { command, oldState, newState: state })
         return state
       }, state)
     }
 
-    function emit(type, ...args) {
-      [type, '*'].forEach(t => emitter.emit(t, ...args))
-    }
-
-    function append(events) {
-      if (events.length < 1) return []
+    const append = events => {
+      if (events.length === 0) return []
       stream = [...stream, ...events]
       return events
     }
 
-    async function run(command) {
+    const run = async command => {
+      const { user, meta, entity } = command
       let events = await decider(await load(), command)
+      events = events || []
       events = Array.isArray(events) ? events : [events]
-      events = events.map(event => {
-        event.payload.id = id
-        return { ...command, ...event }
-      })
+      events = events.map(event => ({ ...command, ...event, user, meta, entity }))
       return reduce(await commit(events), command)
     }
 
-    async function execute(command) {
+    const execute = async command => {
       if (loading && command.payload) {
         return new Promise((resolve, reject) => {
-          queue.push(() => run(command).then(resolve, reject))
+          queue.push(() =>
+            run(command)
+              .then(resolve)
+              .catch(reject)
+          )
         })
       }
+
       const events = await run(command)
       setImmediate(async () => {
         while (queue.length > 0) await queue.shift()()
@@ -74,13 +74,13 @@ module.exports = ({ engine, decider, reducer, emitter }) => {
       return events
     }
 
-    async function commit(events) {
+    const commit = async events => {
       events = events.map(toEvent)
       await engine.save(events)
       return append(events)
     }
 
-    function toEvent(event) {
+    const toEvent = event => {
       if (!isObject(event)) {
         throw new TypeError('Event must be a plain object.')
       } else if (!event.type || typeof event.type !== 'string') {
@@ -106,5 +106,7 @@ module.exports = ({ engine, decider, reducer, emitter }) => {
     }
   }
 
-  return id => (entities[id] = entities[id] || createEntity(id))
+  return id => (entities[id] = entities[id] || getEntity(id))
 }
+
+module.exports = createEntity

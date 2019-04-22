@@ -1,6 +1,6 @@
 'use strict'
 
-const { createCommand, createEvent } = require('../../src/index')
+const { createCommand, createEvent } = require('../../src')
 
 // Command creators
 const INCREMENT = 'increment'

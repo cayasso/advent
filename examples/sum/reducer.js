@@ -9,7 +9,6 @@ const initialState = { value: 0 }
 // with the current state and be returned as new state
 module.exports = (state = initialState, event) => {
   switch (event.type) {
-
     case INCREMENTED:
       return {
         value: event.payload.value

@@ -1,6 +1,6 @@
 'use strict'
 
-const { createStore } = require('../../lib/index')
+const { createStore } = require('../../src')
 const { increment, decrement } = require('./constants')
 const decider = require('./decider')
 const reducer = require('./reducer')
@@ -8,17 +8,19 @@ const reducer = require('./reducer')
 // Creating store
 const store = createStore(decider, reducer)
 
+const entity = store.get('123')
+
 // Subscribing to store events
-store.subscribe((e, data) => {
+entity.subscribe((e, data) => {
   console.log('event:', e, data)
 })
 
 // Executing commands
-store.dispatch(increment({id: 123, value: 110}))
-store.dispatch(increment({id: 123, value: 200}))
-store.dispatch(increment({id: 123, value: 100}))
+entity.dispatch(increment({ value: 110 }))
+entity.dispatch(increment({ value: 200 }))
+entity.dispatch(increment({ value: 100 }))
 
 // Delayed command
 setTimeout(() => {
-  store.dispatch(decrement({id: 123, value: 10}))
-}, 500)
+  entity.dispatch(decrement({ value: 10 }))
+}, 2500)
