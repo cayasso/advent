@@ -1,7 +1,7 @@
 sudo: false
 language: node_js
 node_js:
-  - "7"
-  - "6"
+  - '11'
+  - '10'
 before_install:
-  - "npm install npm -g"
+  - 'npm install npm -g'
