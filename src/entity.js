@@ -36,7 +36,11 @@ const createEntity = ({ engine, decider, reducer, emitter }) => {
     const reduce = (events = [], command, silent) => {
       return events.reduce((oldState, event) => {
         state = update(oldState, reducer(oldState, event))
-        if (!silent) emitter.emit(id, event, { command, oldState, newState: state })
+        if (silent) return state
+        const change = { command, oldState, newState: state }
+        emitter.emit('*', event, change)
+        emitter.emit(id, event, change)
+        emitter.emit(event.type, event, change)
         return state
       }, state)
     }

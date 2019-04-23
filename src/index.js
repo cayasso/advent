@@ -53,12 +53,9 @@ const createStore = (decider, reducer, options = {}) => {
         type = null
       }
 
-      const cb = (event, ...args) => {
+      return listen(id, (event, ...args) => {
         if (!type || type === event.type) fn(event, ...args)
-      }
-
-      emitter.on(id, cb)
-      return () => emitter.off(id, cb)
+      })
     }
 
     const getState = () => entity(id).state
@@ -67,7 +64,18 @@ const createStore = (decider, reducer, options = {}) => {
   }
 
   const clear = () => entity.clear()
-  return { get, clear }
+
+  const listen = (type, fn) => {
+    if (typeof type === 'function') {
+      fn = type
+      type = '*'
+    }
+
+    emitter.on(type, fn)
+    return () => emitter.off(type, fn)
+  }
+
+  return { get, clear, subscribe: listen }
 }
 
 const packer = (type, fn, options = {}) => {

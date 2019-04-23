@@ -156,7 +156,7 @@ describe('advent', () => {
       changes[1].newState.should.be.eql({ value: 17 })
     })
 
-    it('should subscribe to state changes of multiple entities', async () => {
+    it('should subscribe to all events of an entity', async () => {
       const changes = {}
       const store = advent.createStore(decider, reducer)
       const entity = store.get('1')
@@ -176,7 +176,7 @@ describe('advent', () => {
       changes['1'][1].newState.should.be.eql({ value: 5 })
     })
 
-    it('should subscribe to specific event type', async () => {
+    it('should subscribe to specific event type of an entity', async () => {
       const changes = {}
       const store = advent.createStore(decider, reducer)
       const entity = store.get('1')
@@ -194,6 +194,81 @@ describe('advent', () => {
       await sleep(10)
       changes['1'].length.should.eql(1)
       changes['1'][0].newState.should.be.eql({ value: 5 })
+    })
+
+    it('should subscribe to specific event type of state changes from store', async () => {
+      const changes = []
+      const store = advent.createStore(decider, reducer)
+      const entity = store.get('1')
+
+      store.subscribe('decremented', (event, change) => changes.push(change))
+      await entity.dispatch([
+        { type: 'increment', payload: { value: 10 } },
+        { type: 'decrement', payload: { value: 5 } },
+        { type: 'increment', payload: { value: 15 } },
+        { type: 'decrement', payload: { value: 3 } }
+      ])
+      await sleep(10)
+      changes.length.should.eql(2)
+      changes[0].newState.should.be.eql({ value: 5 })
+      changes[1].newState.should.be.eql({ value: 17 })
+    })
+
+    it('should subscribe to state changes of multiple entities from store', async () => {
+      const changes = {}
+      const store = advent.createStore(decider, reducer)
+      const entity1 = store.get('1')
+      const entity2 = store.get('2')
+
+      store.subscribe((event, change) => {
+        changes[event.entity.id] = changes[event.entity.id] || []
+        changes[event.entity.id].push(change)
+      })
+
+      await entity1.dispatch([
+        { type: 'increment', payload: { value: 10 } },
+        { type: 'decrement', payload: { value: 5 } }
+      ])
+
+      await entity2.dispatch([
+        { type: 'increment', payload: { value: 15 } },
+        { type: 'increment', payload: { value: 15 } }
+      ])
+      await sleep(10)
+      changes['1'].length.should.eql(2)
+      changes['1'][0].newState.should.be.eql({ value: 10 })
+      changes['1'][1].newState.should.be.eql({ value: 5 })
+      changes['2'].length.should.eql(2)
+      changes['2'][0].newState.should.be.eql({ value: 15 })
+      changes['2'][1].newState.should.be.eql({ value: 30 })
+    })
+
+    it('should subscribe to specific event type of changes for multiple entities of store', async () => {
+      const changes = {}
+      const store = advent.createStore(decider, reducer)
+      const entity1 = store.get('1')
+      const entity2 = store.get('2')
+
+      store.subscribe('decremented', (event, change) => {
+        changes[event.entity.id] = changes[event.entity.id] || []
+        changes[event.entity.id].push(change)
+      })
+
+      await entity1.dispatch([
+        { type: 'increment', payload: { value: 10 } },
+        { type: 'decrement', payload: { value: 5 } }
+      ])
+
+      await entity2.dispatch([
+        { type: 'increment', payload: { value: 15 } },
+        { type: 'decrement', payload: { value: 10 } }
+      ])
+
+      await sleep(10)
+      changes['1'].length.should.eql(1)
+      changes['1'][0].newState.should.be.eql({ value: 5 })
+      changes['2'].length.should.eql(1)
+      changes['2'][0].newState.should.be.eql({ value: 5 })
     })
   })
 
