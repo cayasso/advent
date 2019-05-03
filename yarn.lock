@@ -55,9 +55,9 @@ acorn@^6.0.2, acorn@^6.0.7:
   version "6.1.1"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-6.1.1.tgz#7d25ae05bb8ad1f9b699108e1094ecd7884adc1f"
 
-advent-memory@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/advent-memory/-/advent-memory-0.2.0.tgz#2e37904fc51f167a8362c51969a787fb3b02413a"
+advent-memory@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/advent-memory/-/advent-memory-2.0.0.tgz#056c33e3f90bebc5864be7d8d82241722452a124"
 
 ajv@^6.9.1:
   version "6.10.0"
