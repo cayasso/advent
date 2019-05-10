@@ -6,7 +6,8 @@
   ],
   "scripts": {
     "test": "npm run lint && lerna run test --stream",
-    "lint": "xo --env=mocha"
+    "lint": "xo --env=mocha",
+    "publish": "lerna publish from-git --yes"
   },
   "license": "MIT",
   "devDependencies": {
