@@ -1,6 +1,6 @@
 {
   "name": "advent-mongo",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "MongoDB engine for advent.",
   "keywords": [
     "store",
@@ -20,7 +20,7 @@
     "lint": "xo --env=mocha"
   },
   "dependencies": {
-    "mongodb": "^3.2.3"
+    "mongodb": "^3.2.4"
   },
   "license": "MIT",
   "main": "./src/index.js",
