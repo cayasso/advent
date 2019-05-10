@@ -6,10 +6,7 @@
   ],
   "scripts": {
     "test": "npm run lint && lerna run test --stream",
-    "lint": "xo --env=mocha",
-    "preversion": "npm run test",
-    "postversion": "git push && git push --tags && npm publish",
-    "patch": "npm version patch -m \"[release] %s\""
+    "lint": "xo --env=mocha"
   },
   "license": "MIT",
   "devDependencies": {

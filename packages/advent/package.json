@@ -15,10 +15,7 @@
   "author": "Jonathan Brumley <cayasso@gmail.com>",
   "scripts": {
     "test": " mocha",
-    "lint": "xo --env=mocha",
-    "preversion": "npm run test",
-    "postversion": "git push && git push --tags && npm publish",
-    "patch": "npm version patch -m \"[release] %s\""
+    "lint": "xo --env=mocha"
   },
   "license": "MIT",
   "dependencies": {
