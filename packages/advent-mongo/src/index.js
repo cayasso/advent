@@ -1,7 +1,7 @@
 'use strict'
 
-const createEventModel = require('./event')
 const createSnapshotModel = require('./snapshot')
+const createEventModel = require('./event')
 const createDatabase = require('./db')
 
 /**

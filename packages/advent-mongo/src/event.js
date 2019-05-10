@@ -13,6 +13,7 @@ module.exports = async ({ db, collections = {} } = {}) => {
   const events = await db.get(collections.events || 'events')
 
   await events.createIndex({ 'entity.id': 1, revision: 1 })
+  await events.createIndex({ 'entity.id': 1 })
   await events.createIndex({ revision: 1 })
   await counts.createIndex({ entity: 1 })
 
