@@ -3,7 +3,7 @@
 const should = require('should')
 const advent = require('../src/index')
 
-function decider(state, command) {
+const decider = (state, command) => {
   switch (command.type) {
     case 'increment':
       return [
@@ -30,7 +30,7 @@ const sleep = time => new Promise(resolve => setTimeout(resolve, time))
 
 const initialState = { value: 0 }
 
-function reducer(state = initialState, event) {
+const reducer = (state = initialState, event) => {
   switch (event.type) {
     case 'incremented':
       return {
