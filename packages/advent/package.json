@@ -1,0 +1,33 @@
+{
+  "name": "advent",
+  "version": "2.0.3",
+  "description": "Event sourcing made simple.",
+  "keywords": [
+    "store",
+    "event",
+    "microservice",
+    "event sourcing",
+    "event store",
+    "eventstore",
+    "command",
+    "cqrs"
+  ],
+  "author": "Jonathan Brumley <cayasso@gmail.com>",
+  "scripts": {
+    "test": " mocha",
+    "lint": "xo --env=mocha",
+    "preversion": "npm run test",
+    "postversion": "git push && git push --tags && npm publish",
+    "patch": "npm version patch -m \"[release] %s\""
+  },
+  "license": "MIT",
+  "dependencies": {
+    "advent-memory": "^2.0.0",
+    "lodash.isplainobject": "^4.0.6",
+    "uuid": "^3.3.2"
+  },
+  "main": "./src/index",
+  "publishConfig": {
+    "access": "public"
+  }
+}

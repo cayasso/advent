@@ -1,39 +1,25 @@
 {
-  "name": "advent",
-  "version": "2.0.3",
-  "description": "Event sourcing made simple.",
-  "keywords": [
-    "store",
-    "event",
-    "microservice",
-    "event sourcing",
-    "event store",
-    "eventstore",
-    "command",
-    "cqrs"
+  "name": "advent-packages",
+  "private": true,
+  "workspaces": [
+    "packages/*"
   ],
-  "author": "Jonathan Brumley <cayasso@gmail.com>",
   "scripts": {
-    "test": "npm run lint && mocha",
+    "test": "npm run lint && lerna run test --stream",
     "lint": "xo --env=mocha",
     "preversion": "npm run test",
     "postversion": "git push && git push --tags && npm publish",
     "patch": "npm version patch -m \"[release] %s\""
   },
   "license": "MIT",
-  "dependencies": {
-    "advent-memory": "^2.0.0",
-    "lodash.isplainobject": "^4.0.6",
-    "uuid": "^3.3.2"
-  },
   "devDependencies": {
-    "eslint-config-prettier": "^4.1.0",
+    "eslint-config-prettier": "^4.2.0",
+    "lerna": "^3.13.4",
     "mocha": "^6.1.4",
     "pre-commit": "^1.2.2",
     "should": "^13.2.3",
     "xo": "^0.24.0"
   },
-  "main": "./src/index",
   "pre-commit": [
     "test"
   ],
@@ -42,7 +28,8 @@
       "prettier"
     ],
     "ignores": [
-      "test/**"
+      "**/test/**",
+      "examples"
     ],
     "rules": {
       "import/no-unassigned-import": 0,

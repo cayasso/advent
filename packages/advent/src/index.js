@@ -8,10 +8,12 @@ const createEntity = require('./entity')
 
 class Emitter extends EventEmitter {}
 
+const isFunction = fn => typeof fn === 'function'
+
 const createStore = (decider, reducer, options = {}) => {
-  if (typeof decider !== 'function') {
+  if (!isFunction(decider)) {
     throw new TypeError('Decider must be a function.')
-  } else if (typeof reducer !== 'function') {
+  } else if (!isFunction(reducer)) {
     throw new TypeError('Reducer must be a function.')
   }
 
@@ -48,7 +50,7 @@ const createStore = (decider, reducer, options = {}) => {
     }
 
     const subscribe = (type, fn) => {
-      if (typeof type === 'function') {
+      if (isFunction(type)) {
         fn = type
         type = null
       }
@@ -58,7 +60,7 @@ const createStore = (decider, reducer, options = {}) => {
       })
     }
 
-    const getState = () => entity(id).state
+    const getState = () => entity(id).getState()
     const clearState = () => entity(id).clear()
     return { dispatch, subscribe, getState, clearState }
   }
@@ -66,7 +68,7 @@ const createStore = (decider, reducer, options = {}) => {
   const clear = () => entity.clear()
 
   const listen = (type, fn) => {
-    if (typeof type === 'function') {
+    if (isFunction(type)) {
       fn = type
       type = '*'
     }
@@ -84,9 +86,8 @@ const packer = (type, fn, options = {}) => {
     fn = undefined
   }
 
-  fn = typeof fn === 'function' ? fn : f => f
+  fn = isFunction(fn) ? fn : f => f
 
-  // Ko
   return (...args) => {
     let data = fn(...args)
 

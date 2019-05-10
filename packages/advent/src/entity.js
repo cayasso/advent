@@ -4,13 +4,13 @@ const isObject = require('lodash.isplainobject')
 const uuid = require('uuid').v4
 const update = require('./update')
 
-const createEntity = ({ engine, decider, reducer, emitter }) => {
-  const entities = {}
+module.exports = ({ engine, decider, reducer, emitter, snapRate = 5 }) => {
+  const cache = {}
 
   const getEntity = id => {
     let state
-    let stream = []
     let queue = []
+    let stream = []
     let loading = false
 
     const init = [{ type: '__init__', payload: {} }]
@@ -28,27 +28,22 @@ const createEntity = ({ engine, decider, reducer, emitter }) => {
       if (state) return state
       reduce(init, null, true)
       loading = true
-      const events = append(await engine.load(id))
+      const { events, snap } = await engine.load(id)
       loading = false
-      return reduce(events, null, true)
+      return reduce(events, null, true, snap)
     }
 
-    const reduce = (events = [], command, silent) => {
+    const reduce = (events = [], command, silent, snap) => {
       return events.reduce((oldState, event) => {
         state = update(oldState, reducer(oldState, event))
+        state.id = id
+        state.version = state.version || 0
+        state.revision = event.revision || 0
         if (silent) return state
         const change = { command, oldState, newState: state }
-        emitter.emit('*', event, change)
-        emitter.emit(id, event, change)
-        emitter.emit(event.type, event, change)
+        ;['*', id, event.type].forEach(type => emitter.emit(type, event, change))
         return state
-      }, state)
-    }
-
-    const append = events => {
-      if (events.length === 0) return []
-      stream = [...stream, ...events]
-      return events
+      }, snap || state)
     }
 
     const run = async command => {
@@ -56,7 +51,7 @@ const createEntity = ({ engine, decider, reducer, emitter }) => {
       let events = await decider(await load(), command)
       events = events || []
       events = Array.isArray(events) ? events : [events]
-      events = events.map(event => ({ ...command, ...event, user, meta, entity }))
+      events = events.map(event => toEvent({ ...command, ...event, user, meta, entity }))
       return reduce(await commit(events), command)
     }
 
@@ -71,17 +66,39 @@ const createEntity = ({ engine, decider, reducer, emitter }) => {
         })
       }
 
-      const events = await run(command)
+      await run(command)
+
       setImmediate(async () => {
         while (queue.length > 0) await queue.shift()()
       })
+      return state
+    }
+
+    const commit = async (events = []) => {
+      stream.push(...events)
+
+      let snap
+
+      if (
+        typeof state.version === 'number' &&
+        snapRate &&
+        state.revision >= state.version + snapRate
+      ) {
+        state.version = state.revision
+        snap = clone({ ...state, version: state.revision })
+      }
+
+      await engine.save(stream, snap)
+      stream = []
       return events
     }
 
-    const commit = async events => {
-      events = events.map(toEvent)
-      await engine.save(events)
-      return append(events)
+    const clone = data => {
+      return JSON.parse(JSON.stringify(data))
+    }
+
+    const getState = () => {
+      return state
     }
 
     const toEvent = event => {
@@ -93,24 +110,11 @@ const createEntity = ({ engine, decider, reducer, emitter }) => {
         throw new TypeError('Event must have a payload.')
       }
 
-      return {
-        ...event,
-        id: uuid(),
-        cid: event.id,
-        ts: Date.now()
-      }
+      return { ...event, id: uuid(), cid: event.id, ts: Date.now() }
     }
 
-    return {
-      clear,
-      execute,
-      get state() {
-        return state
-      }
-    }
+    return { clear, execute, commit, getState }
   }
 
-  return id => (entities[id] = entities[id] || getEntity(id))
+  return id => (cache[id] = cache[id] || getEntity(id))
 }
-
-module.exports = createEntity

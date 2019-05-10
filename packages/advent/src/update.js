@@ -2,8 +2,8 @@
 
 const isObject = require('lodash.isplainobject')
 
-const {isArray} = Array
-const {keys} = Object
+const { isArray } = Array
+const { keys } = Object
 
 const array = (original, updates) => {
   return [...updates]

@@ -84,7 +84,7 @@ describe('advent', () => {
       const entity = store.get('1')
 
       entity.dispatch({ payload: {} }).catch(e => {
-        e.should.match(/must have a valid type/)
+        should(e).match(/must have a valid type/)
         done()
       })
     })
@@ -94,7 +94,7 @@ describe('advent', () => {
       const entity = store.get('1')
 
       entity.dispatch({ type: 'increment' }).catch(e => {
-        e.should.match(/must have a payload object/)
+        should(e).match(/must have a payload object/)
         done()
       })
     })
@@ -105,7 +105,7 @@ describe('advent', () => {
       const entity = store.get('1')
 
       await entity.dispatch({ type: 'increment', payload })
-      entity.getState().should.be.eql(payload)
+      should(entity.getState()).containEql(payload)
     })
 
     it('should dispatch multiple commands to alter state', async () => {
@@ -117,7 +117,7 @@ describe('advent', () => {
         { type: 'decrement', payload: { value: 5 } },
         { type: 'increment', payload: { value: 15 } }
       ])
-      entity.getState().should.be.eql({ value: 20 })
+      should(entity.getState()).containEql({ value: 20 })
     })
   })
 
@@ -133,10 +133,10 @@ describe('advent', () => {
         { type: 'increment', payload: { value: 15 } }
       ])
       await sleep(10)
-      changes.length.should.eql(3)
-      changes[0].newState.should.be.eql({ value: 10 })
-      changes[1].newState.should.be.eql({ value: 5 })
-      changes[2].newState.should.be.eql({ value: 20 })
+      should(changes.length).eql(3)
+      should(changes[0].newState).containEql({ value: 10 })
+      should(changes[1].newState).containEql({ value: 5 })
+      should(changes[2].newState).containEql({ value: 20 })
     })
 
     it('should subscribe to specific event type of state changes', async () => {
@@ -151,9 +151,9 @@ describe('advent', () => {
         { type: 'decrement', payload: { value: 3 } }
       ])
       await sleep(10)
-      changes.length.should.eql(2)
-      changes[0].newState.should.be.eql({ value: 5 })
-      changes[1].newState.should.be.eql({ value: 17 })
+      should(changes.length).eql(2)
+      should(changes[0].newState).containEql({ value: 5 })
+      should(changes[1].newState).containEql({ value: 17 })
     })
 
     it('should subscribe to all events of an entity', async () => {
@@ -170,10 +170,11 @@ describe('advent', () => {
         { type: 'increment', payload: { value: 10 } },
         { type: 'decrement', payload: { value: 5 } }
       ])
+
       await sleep(10)
-      changes['1'].length.should.eql(2)
-      changes['1'][0].newState.should.be.eql({ value: 10 })
-      changes['1'][1].newState.should.be.eql({ value: 5 })
+      should(changes['1'].length).eql(2)
+      should(changes['1'][0].newState).containEql({ value: 10 })
+      should(changes['1'][1].newState).containEql({ value: 5 })
     })
 
     it('should subscribe to specific event type of an entity', async () => {
@@ -192,8 +193,8 @@ describe('advent', () => {
       ])
 
       await sleep(10)
-      changes['1'].length.should.eql(1)
-      changes['1'][0].newState.should.be.eql({ value: 5 })
+      should(changes['1'].length).eql(1)
+      should(changes['1'][0].newState).containEql({ value: 5 })
     })
 
     it('should subscribe to specific event type of state changes from store', async () => {
@@ -209,9 +210,9 @@ describe('advent', () => {
         { type: 'decrement', payload: { value: 3 } }
       ])
       await sleep(10)
-      changes.length.should.eql(2)
-      changes[0].newState.should.be.eql({ value: 5 })
-      changes[1].newState.should.be.eql({ value: 17 })
+      should(changes.length).eql(2)
+      should(changes[0].newState).containEql({ value: 5 })
+      should(changes[1].newState).containEql({ value: 17 })
     })
 
     it('should subscribe to state changes of multiple entities from store', async () => {
@@ -235,12 +236,12 @@ describe('advent', () => {
         { type: 'increment', payload: { value: 15 } }
       ])
       await sleep(10)
-      changes['1'].length.should.eql(2)
-      changes['1'][0].newState.should.be.eql({ value: 10 })
-      changes['1'][1].newState.should.be.eql({ value: 5 })
-      changes['2'].length.should.eql(2)
-      changes['2'][0].newState.should.be.eql({ value: 15 })
-      changes['2'][1].newState.should.be.eql({ value: 30 })
+      should(changes['1'].length).eql(2)
+      should(changes['1'][0].newState).containEql({ value: 10 })
+      should(changes['1'][1].newState).containEql({ value: 5 })
+      should(changes['2'].length).eql(2)
+      should(changes['2'][0].newState).containEql({ value: 15 })
+      should(changes['2'][1].newState).containEql({ value: 30 })
     })
 
     it('should subscribe to specific event type of changes for multiple entities of store', async () => {
@@ -265,10 +266,10 @@ describe('advent', () => {
       ])
 
       await sleep(10)
-      changes['1'].length.should.eql(1)
-      changes['1'][0].newState.should.be.eql({ value: 5 })
-      changes['2'].length.should.eql(1)
-      changes['2'][0].newState.should.be.eql({ value: 5 })
+      should(changes['1'].length).eql(1)
+      should(changes['1'][0].newState).containEql({ value: 5 })
+      should(changes['2'].length).eql(1)
+      should(changes['2'][0].newState).containEql({ value: 5 })
     })
   })
 
@@ -284,7 +285,7 @@ describe('advent', () => {
       ])
 
       entity.clearState()
-      ;(entity.getState() === undefined).should.be.true()
+      should(entity.getState() === undefined).be.true()
     })
   })
 })
