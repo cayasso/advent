@@ -20,7 +20,7 @@ const createStore = (decider, reducer, options = {}) => {
   const name = options.entity || ''
   const engine = options.engine || createEngine()
   const emitter = options.emitter || new Emitter()
-  const entity = createEntity({ decider, reducer, engine, emitter })
+  const entity = createEntity({ ...options, decider, reducer, engine, emitter })
 
   const get = id => {
     const toCommand = command => {

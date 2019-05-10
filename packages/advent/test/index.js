@@ -119,6 +119,23 @@ describe('advent', () => {
       ])
       should(entity.getState()).containEql({ value: 20 })
     })
+
+    it('should snapshot state based on given snapRate', async () => {
+      const snapRate = 3
+      const store = advent.createStore(decider, reducer, { snapRate })
+      const entity = store.get('1')
+
+      const commands = [
+        { type: 'increment', payload: { value: 10 } },
+        { type: 'decrement', payload: { value: 5 } },
+        { type: 'increment', payload: { value: 15 } },
+        { type: 'increment', payload: { value: 5 } },
+        { type: 'increment', payload: { value: 5 } }
+      ]
+
+      await entity.dispatch(commands)
+      should(entity.getState()).containEql({ version: snapRate, revision: commands.length })
+    })
   })
 
   describe('subscribe', () => {

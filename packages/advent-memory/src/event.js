@@ -42,7 +42,7 @@ module.exports = () => {
           const id = event.entity.id || event.id
           if (!id) return false
           events[id] = events[id] || []
-          counts[id] = counts[id] || 0
+          counts[id] = counts[id] || 1
           event.revision = counts[id]++
           events[id] = [...events[id], event]
           return true

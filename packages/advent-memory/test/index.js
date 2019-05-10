@@ -97,8 +97,6 @@ describe('advent-memory', () => {
     })
 
     it('should load events from snapshot', async () => {
-      //engine = createEngine()
-
       const testEvents = [
         { entity: { id: 'a1', name: 'test' }, type: 'created', payload: { a: 1 } },
         { entity: { id: 'a1', name: 'test' }, type: 'updated', payload: { a: 2 } },
@@ -114,7 +112,7 @@ describe('advent-memory', () => {
       const { events, snap } = await engine.load(id)
 
       should(snapshot).containEql(snap)
-      should(events.length).eql(2)
+      should(events.length).eql(3)
       should(events[1]).containEql({ revision: 4 })
     })
   })
