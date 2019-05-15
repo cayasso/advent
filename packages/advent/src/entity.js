@@ -4,7 +4,7 @@ const isObject = require('lodash.isplainobject')
 const uuid = require('uuid').v4
 const update = require('./update')
 
-module.exports = ({ engine, decider, reducer, emitter, snapRate = 5 }) => {
+module.exports = ({ engine, decider, reducer, emitter, snapRate = 0 }) => {
   const cache = {}
 
   const getEntity = id => {
