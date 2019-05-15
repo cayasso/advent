@@ -22,33 +22,33 @@ const createStore = (decider, reducer, options = {}) => {
   const emitter = options.emitter || new Emitter()
   const entity = createEntity({ ...options, decider, reducer, engine, emitter })
 
+  const toCommand = (id, command) => {
+    if (!isObject(command)) {
+      throw new TypeError('Command must be a plain object.')
+    } else if (typeof command.type !== 'string') {
+      throw new TypeError('Command must have a valid type.')
+    } else if (typeof command.payload === 'undefined') {
+      throw new TypeError('Command must have a payload.')
+    }
+
+    const { type, user = {}, meta = {}, payload } = command
+    return { type, user, meta, payload, id: uuid(), ts: Date.now(), entity: { name, id } }
+  }
+
+  const send = async (id, data) => {
+    if (Array.isArray(data)) {
+      let state
+      for (const cmd of data) {
+        state = await send(id, cmd)
+      }
+
+      return state
+    }
+
+    return entity(id).execute(toCommand(id, data))
+  }
+
   const get = id => {
-    const toCommand = command => {
-      if (!isObject(command)) {
-        throw new TypeError('Command must be a plain object.')
-      } else if (typeof command.type !== 'string') {
-        throw new TypeError('Command must have a valid type.')
-      } else if (typeof command.payload === 'undefined') {
-        throw new TypeError('Command must have a payload.')
-      }
-
-      const { type, user = {}, meta = {}, payload } = command
-      return { type, user, meta, payload, id: uuid(), ts: Date.now(), entity: { name, id } }
-    }
-
-    const dispatch = async data => {
-      if (Array.isArray(data)) {
-        let state
-        for (const cmd of data) {
-          state = await dispatch(cmd)
-        }
-
-        return state
-      }
-
-      return entity(id).execute(toCommand(data))
-    }
-
     const subscribe = (type, fn) => {
       if (isFunction(type)) {
         fn = type
@@ -62,10 +62,12 @@ const createStore = (decider, reducer, options = {}) => {
 
     const getState = () => entity(id).getState()
     const clearState = () => entity(id).clear()
-    return { dispatch, subscribe, getState, clearState }
+    const dispatch = cmd => send(id, cmd)
+    return { subscribe, getState, clearState, dispatch }
   }
 
   const clear = () => entity.clear()
+  const dispatch = (...args) => send(...args)
 
   const listen = (type, fn) => {
     if (isFunction(type)) {
@@ -77,7 +79,7 @@ const createStore = (decider, reducer, options = {}) => {
     return () => emitter.off(type, fn)
   }
 
-  return { get, clear, subscribe: listen }
+  return { get, clear, dispatch, subscribe: listen }
 }
 
 const packer = (type, fn, options = {}) => {

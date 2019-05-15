@@ -40,6 +40,7 @@ module.exports = async ({ db, collections = {} } = {}) => {
 
   const save = snap => {
     if (!snap || !snap.id || !snap.version) return
+    delete snap._id
     return snapshots.insertOne(snap)
   }
 
