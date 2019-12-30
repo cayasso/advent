@@ -20,6 +20,7 @@ module.exports = ({ engine, decider, reducer, emitter, snapRate = 0 }) => {
       queue = []
       loading = false
       state = undefined
+      delete cache[id]
       return id
     }
 
@@ -30,10 +31,14 @@ module.exports = ({ engine, decider, reducer, emitter, snapRate = 0 }) => {
       loading = true
       const { events, snap } = await engine.load(id)
       loading = false
-      return reduce(events, null, true, snap)
+      return reduce(events, "load", true, snap)
     }
 
     const reduce = (events = [], command, silent, snap) => {
+      if(command === "load" && events.length === 0 && snap){
+        state = snap
+        return snap
+      }
       return events.reduce((oldState, event) => {
         state = update(oldState, reducer(oldState, event))
         state.id = id
